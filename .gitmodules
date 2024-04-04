@@ -1,0 +1,3 @@
+[submodule "submodules/command-line-api-extensions"]
+	path = submodules/command-line-api-extensions
+	url = https://github.com/matzefriedrich/command-line-api-extensions.git
