@@ -1,0 +1,11 @@
+.idea/
+.vs/
+.vscode/
+
+bin/
+nupkg/
+obj/
+
+*.csproj.user
+*.DotSettings.user
+*.suo
