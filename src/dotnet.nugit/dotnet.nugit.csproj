@@ -29,4 +29,8 @@
     <ToolCommandName>nugit</ToolCommandName>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\submodules\command-line-api-extensions\src\System.CommandLine.Extensions\System.CommandLine.Extensions.csproj" />
+  </ItemGroup>
+
 </Project>
