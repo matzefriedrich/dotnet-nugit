@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyVersion>0.1.0</AssemblyVersion>
+    <FileVersion>0.1.1</FileVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Authors>Matthias Friedrich</Authors>
+    <Company>Matthias Friedrich</Company>
+    <Copyright>Copyright (c) 2024 - Matthias Friedrich</Copyright>
+    <Description>A dotnet command-line interface (CLI) that can build NuGet packages on the fly from sources available on GitHub and add them as package references to projects.</Description>
+    <PackageLicenseUrl>https://github.com/matzefriedrich/dotnet-nugit/blob/main/LICENSE</PackageLicenseUrl>
+    <PackageTags>github git nuget-packages dotnet nuget-client nuget</PackageTags>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/matzefriedrich/dotnet-nugit</RepositoryUrl>
+    <Title>dotnet nuget</Title>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageOutputPath>./nupkg</PackageOutputPath>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>nugit</ToolCommandName>
+  </PropertyGroup>
+
+</Project>
