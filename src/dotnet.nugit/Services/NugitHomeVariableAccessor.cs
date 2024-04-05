@@ -2,12 +2,8 @@ namespace dotnet.nugit
 {
     using Abstractions;
 
-    internal sealed class NugitHomeVariableAccessor : VariableAccessor
+    internal sealed class NugitHomeVariableAccessor() : VariableAccessor(ApplicationVariableNames.NugitHome)
     {
-        public NugitHomeVariableAccessor() : base("NUGIT_HOME")
-        {
-        }
-
         public override string? Value()
         {
             string? nugitHomeVariableValue = Environment.GetEnvironmentVariable(this.Name);

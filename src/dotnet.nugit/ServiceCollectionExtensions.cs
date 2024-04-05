@@ -1,17 +1,16 @@
 ﻿namespace dotnet.nugit
 {
     using Abstractions;
-    using Commands;
     using Microsoft.Extensions.DependencyInjection;
 
     internal static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddCommands(this IServiceCollection services)
+        public static IServiceCollection AddModule<T>(this IServiceCollection services) where T : IModule, new()
         {
-            services.AddTransient<GreetingCommand>();
-            services.AddTransient<ListEnvironmentVariablesCommand>();
-            services.AddTransient<VariableAccessor, NugitHomeVariableAccessor>();
-            services.AddSingleton<IVariablesService, VariablesService>();
+            ArgumentNullException.ThrowIfNull(services);
+
+            var module = new T();
+            module.LoadModule(services);
             return services;
         }
     }
