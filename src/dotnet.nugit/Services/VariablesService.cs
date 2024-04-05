@@ -1,6 +1,7 @@
-namespace dotnet.nugit
+namespace dotnet.nugit.Services
 {
     using Abstractions;
+    using Resources;
 
     public sealed class VariablesService : IVariablesService
     {
@@ -20,7 +21,7 @@ namespace dotnet.nugit
         {
             if (string.IsNullOrWhiteSpace(name))
             {
-                throw new ArgumentException(Resources.Resources.ArgumentException_Value_cannot_be_null_or_whitespace, nameof(name));
+                throw new ArgumentException(Resources.ArgumentException_Value_cannot_be_null_or_whitespace, nameof(name));
             }
 
             string lookupName = name.ToLowerInvariant();
