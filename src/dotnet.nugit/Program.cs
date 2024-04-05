@@ -5,6 +5,7 @@ namespace dotnet.nugit;
 
 using Commands;
 using Microsoft.Extensions.DependencyInjection;
+using Services;
 
 internal static class Program
 {
@@ -13,14 +14,23 @@ internal static class Program
         var app = new CommandLineApplication();
 
         var services = new ServiceCollection();
-        services.AddSingleton<CommandLineApplication>().AddCommands();
-
+        services
+            .AddSingleton<CommandLineApplication>()
+            .AddModule<ServicesModule>()
+            .AddModule<CommandsModule>();
+        
         using ServiceProvider provider = services.BuildServiceProvider();
 
         app.Command("env", "Lists environment variables and their values.", env =>
         {
             var handler = provider.GetRequiredService<ListEnvironmentVariablesCommand>();
             env.OnExecute(async () => await handler.ListEnvironmentVariablesAsync());
+        });
+
+        app.Command("init", "Initializes a new local repository.", init =>
+        {
+            var handler = provider.GetRequiredService<InitCommand>();
+            init.OnExecute(async () => await handler.InitializeNewRepositoryAsync());
         });
         
         app.Command("greeting", "Greets the specified person.", greeting =>
