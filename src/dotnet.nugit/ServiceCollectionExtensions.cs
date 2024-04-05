@@ -1,5 +1,6 @@
 ﻿namespace dotnet.nugit
 {
+    using Abstractions;
     using Commands;
     using Microsoft.Extensions.DependencyInjection;
 
@@ -9,6 +10,8 @@
         {
             services.AddTransient<GreetingCommand>();
             services.AddTransient<ListEnvironmentVariablesCommand>();
+            services.AddTransient<VariableAccessor, NugitHomeVariableAccessor>();
+            services.AddSingleton<IVariablesService, VariablesService>();
             return services;
         }
     }

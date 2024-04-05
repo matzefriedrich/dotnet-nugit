@@ -1,48 +1,33 @@
 ﻿namespace dotnet.nugit.Commands
 {
-    public static class Variables
-    {
-        public static readonly string NugitHomeVariableName = "NUGIT_HOME";
-        public static readonly Func<string> NugitHome = () => "";
-    }
+    using Abstractions;
 
     public class ListEnvironmentVariablesCommand
     {
-        private static readonly IDictionary<string, Func<string?>> variables = new Dictionary<string, Func<string?>>
+        private readonly IVariablesService variablesService;
+
+        public ListEnvironmentVariablesCommand(IVariablesService variablesService)
         {
-            [Variables.NugitHomeVariableName] = Variables.NugitHome
-        };
+            this.variablesService = variablesService ?? throw new ArgumentNullException(nameof(variablesService));
+        }
 
         public async Task<int> ListEnvironmentVariablesAsync()
         {
-            IDictionary<string, string> processVariables = GetCurrentProcessVariables();
-
-            WriteVariables(processVariables);
+            this.WriteVariables();
 
             return await Task.FromResult(0);
         }
 
-        private static void WriteVariables(IDictionary<string, string> processVariables)
+        private void WriteVariables()
         {
-            List<string> keys = processVariables.Keys.OrderBy(s => s).ToList();
-            foreach (string variableName in keys)
+            List<string> variableNames = this.variablesService.GetVariableNames().OrderBy(s => s).ToList();
+            foreach (string variableName in variableNames)
             {
-                string value = processVariables[variableName];
-                Console.WriteLine($"{variableName}={value}");
+                if (this.variablesService.TryGetVariable(variableName, out string? value))
+                {
+                    Console.WriteLine($"{variableName}={value}");
+                }
             }
-        }
-
-        private static IDictionary<string, string> GetCurrentProcessVariables()
-        {
-            var processVariables = new Dictionary<string, string>();
-            foreach ((string variable, Func<string?> defaultValue) in variables)
-            {
-                processVariables[variable] = defaultValue?.Invoke() ?? string.Empty;
-                string? value = Environment.GetEnvironmentVariable(variable, EnvironmentVariableTarget.Process)?.Trim();
-                if (string.IsNullOrWhiteSpace(value) == false) processVariables[variable] = value;
-            }
-
-            return processVariables;
         }
     }
 }

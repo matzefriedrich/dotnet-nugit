@@ -13,7 +13,7 @@ internal static class Program
         var app = new CommandLineApplication();
 
         var services = new ServiceCollection();
-        services.AddSingleton<CommandLineApplication>();
+        services.AddSingleton<CommandLineApplication>().AddCommands();
 
         using ServiceProvider provider = services.BuildServiceProvider();
 

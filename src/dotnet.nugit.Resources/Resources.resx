@@ -18,4 +18,7 @@
     <resheader name="writer">
         <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
     </resheader>
+    <data name="ArgumentException_Value_cannot_be_null_or_whitespace" xml:space="preserve">
+        <value>Value cannot be null or whitespace.</value>
+    </data>
 </root>
