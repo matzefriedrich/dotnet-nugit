@@ -1,16 +1,36 @@
 ﻿namespace dotnet.nugit.Abstractions
 {
-    using System.Xml.Serialization;
-
-    public sealed class PackageSource
+    public sealed class PackageSource(string? key, string? value) : IEquatable<PackageSource>
     {
-        [XmlAttribute("key")]
-        public string Key { get; init; } = null!;
+        public string Key { get; } = key!;
 
-        [XmlAttribute("value")]
-        public string? Value { get; init; }
-        
-        [XmlAttribute("protocolVersion", typeof(int?))]
+        public string? Value { get; } = value;
+
         public int? ProtocolVersion { get; init; }
+
+        public bool Equals(PackageSource? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            return this.Key == other.Key && this.Value == other.Value && this.ProtocolVersion == other.ProtocolVersion;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return ReferenceEquals(this, obj) || obj is PackageSource other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(this.Key, this.Value, this.ProtocolVersion);
+        }
     }
 }

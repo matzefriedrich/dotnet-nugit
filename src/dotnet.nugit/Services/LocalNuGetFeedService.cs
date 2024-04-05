@@ -21,17 +21,26 @@
 
         public async Task<IEnumerable<PackageSource>> GetConfiguredPackageSourcesAsync()
         {
-            string? nugetConfigFilePath = this.infoService.GetNuGetConfigFilePath();
+            string nugetConfigFilePath = this.infoService.GetNuGetConfigFilePath();
             if (string.IsNullOrWhiteSpace(nugetConfigFilePath) == false && File.Exists(nugetConfigFilePath))
             {
                 await using Stream stream = File.OpenRead(nugetConfigFilePath);
-                using XmlReader reader = XmlReader.Create(stream, new XmlReaderSettings { IgnoreWhitespace = true, IgnoreComments = true });
-                var serializer = new XmlSerializer(typeof(NuGetConfiguration));
-                NuGetConfiguration? config;
-                if ((config = serializer.Deserialize(reader) as NuGetConfiguration) != null)
+                XDocument doc = await XDocument.LoadAsync(stream, LoadOptions.None, CancellationToken.None);
+
+                XElement? configurationElt = doc.Element("configuration");
+                XElement? sourcesElt = configurationElt?.Element("packageSources");
+                
+                return sourcesElt?.Elements("add").Select(element =>
                 {
-                    return config.PackageSources.AsReadOnly();
-                }
+                    string? protocolVersionString = element.Attribute("protocolVersion")?.Value;
+                    int.TryParse(protocolVersionString, out int pv);
+                    string? key = element.Attribute("key")?.Value;
+                    string? value = element.Attribute("value")?.Value;
+                    return new PackageSource(key, value)
+                    {
+                        ProtocolVersion = pv == 0 ? null : pv
+                    };
+                }).ToList().AsReadOnly() ?? Enumerable.Empty<PackageSource>();
             }
 
             return [];
@@ -59,7 +68,9 @@
 
             string nugetConfigFilePath = this.infoService.GetNuGetConfigFilePath();
             XDocument doc = XDocument.Load(nugetConfigFilePath);
-            doc.Element("packageSources")?.Add(new XElement("add", new XAttribute("key", name), new XAttribute("value", localFeedPath)));
+            XElement? configurationElt = doc.Element("configuration");
+            XElement? sourcesElt = configurationElt?.Element("packageSources");
+            sourcesElt?.Add(new XElement("add", new XAttribute("key", name), new XAttribute("value", localFeedPath)));
             await doc.SaveAsync(File.OpenWrite(nugetConfigFilePath), SaveOptions.None, cancellationToken);
 
             return new LocalFeedInfo(name)
