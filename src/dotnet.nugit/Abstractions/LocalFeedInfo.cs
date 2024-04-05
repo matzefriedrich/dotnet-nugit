@@ -1,10 +1,10 @@
-namespace dotnet.nugit.Abstractions
+﻿namespace dotnet.nugit.Abstractions
 {
     using Resources;
 
-    public abstract class VariableAccessor
+    public class LocalFeedInfo
     {
-        protected VariableAccessor(string name)
+        public LocalFeedInfo(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
@@ -15,6 +15,6 @@ namespace dotnet.nugit.Abstractions
         }
 
         public string Name { get; }
-        public abstract string? Value();
+        public string? LocalPath { get; init; }
     }
 }
