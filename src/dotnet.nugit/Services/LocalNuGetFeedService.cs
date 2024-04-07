@@ -1,15 +1,14 @@
 ﻿namespace dotnet.nugit.Services
 {
-    using System.Xml;
     using System.Xml.Linq;
-    using System.Xml.Serialization;
     using Abstractions;
-    using Resources;
 
     public sealed class LocalNuGetFeedService : INuGetFeedService
     {
+        private static readonly string DefaultLocalFeedName = "LocalNuGitFeed";
         private readonly INuGetInfoService infoService;
         private readonly IVariablesService variablesService;
+
 
         public LocalNuGetFeedService(
             IVariablesService variablesService,
@@ -29,7 +28,7 @@
 
                 XElement? configurationElt = doc.Element("configuration");
                 XElement? sourcesElt = configurationElt?.Element("packageSources");
-                
+
                 return sourcesElt?.Elements("add").Select(element =>
                 {
                     string? protocolVersionString = element.Attribute("protocolVersion")?.Value;
@@ -46,34 +45,35 @@
             return [];
         }
 
-        public async Task<LocalFeedInfo> CreateLocalFeedIfNotExistsAsync(string name, CancellationToken cancellationToken)
+        public async Task<LocalFeedInfo?> GetConfiguredLocalFeedAsync()
         {
-            if (string.IsNullOrWhiteSpace(name))
+            PackageSource? source = (await this.GetConfiguredPackageSourcesAsync()).SingleOrDefault(source => string.Compare(source.Key, DefaultLocalFeedName, StringComparison.InvariantCultureIgnoreCase) == 0);
+            if (source == null) return null;
+            return new LocalFeedInfo(source.Key)
             {
-                throw new ArgumentException(Resources.ArgumentException_Value_cannot_be_null_or_whitespace, nameof(name));
-            }
+                LocalPath = source.Value
+            };
+        }
+
+        public async Task<LocalFeedInfo> CreateLocalFeedIfNotExistsAsync(CancellationToken cancellationToken)
+        {
+            string feedName = DefaultLocalFeedName;
 
             IEnumerable<PackageSource> existingSources = await this.GetConfiguredPackageSourcesAsync();
-            Dictionary<string, PackageSource> dict = existingSources.ToDictionary(source => source.Key.ToLowerInvariant(), source => source);
-            if (dict.TryGetValue(name.ToLowerInvariant(), out PackageSource? source) && source != null)
-            {
-                return new LocalFeedInfo(name) { LocalPath = source.Value };
-            }
+            Dictionary<string, PackageSource> dict = existingSources.ToDictionary(packageSource => packageSource.Key.ToLowerInvariant(), source => source);
+            if (dict.TryGetValue(feedName.ToLowerInvariant(), out PackageSource? source)) return new LocalFeedInfo(feedName) { LocalPath = source.Value };
 
             string localFeedPath = this.variablesService.GetNugitHomeDirectoryPath();
-            if (string.IsNullOrWhiteSpace(localFeedPath) == false && Directory.Exists(localFeedPath) == false)
-            {
-                Directory.CreateDirectory(localFeedPath);
-            }
+            if (string.IsNullOrWhiteSpace(localFeedPath) == false && Directory.Exists(localFeedPath) == false) Directory.CreateDirectory(localFeedPath);
 
             string nugetConfigFilePath = this.infoService.GetNuGetConfigFilePath();
             XDocument doc = XDocument.Load(nugetConfigFilePath);
             XElement? configurationElt = doc.Element("configuration");
             XElement? sourcesElt = configurationElt?.Element("packageSources");
-            sourcesElt?.Add(new XElement("add", new XAttribute("key", name), new XAttribute("value", localFeedPath)));
+            sourcesElt?.Add(new XElement("add", new XAttribute("key", feedName), new XAttribute("value", localFeedPath)));
             await doc.SaveAsync(File.OpenWrite(nugetConfigFilePath), SaveOptions.None, cancellationToken);
 
-            return new LocalFeedInfo(name)
+            return new LocalFeedInfo(feedName)
             {
                 LocalPath = localFeedPath
             };

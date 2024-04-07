@@ -2,26 +2,30 @@ namespace dotnet.nugit.Commands
 {
     using System.Text;
     using Abstractions;
+    using Microsoft.Extensions.Logging;
     using YamlDotNet.Serialization;
     using YamlDotNet.Serialization.NamingConventions;
 
     public sealed class InitCommand
     {
         private readonly INuGetFeedService nuGetFeedService;
+        private readonly ILogger<InitCommand> logger;
 
-        public InitCommand(INuGetFeedService nuGetFeedService)
+        public InitCommand(
+            INuGetFeedService nuGetFeedService,
+            ILogger<InitCommand> logger)
         {
             this.nuGetFeedService = nuGetFeedService ?? throw new ArgumentNullException(nameof(nuGetFeedService));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<int> InitializeNewRepositoryAsync()
         {
-            const string feedName = "LocalNuGitFeed";
-            LocalFeedInfo feed = await this.nuGetFeedService.CreateLocalFeedIfNotExistsAsync(feedName, CancellationToken.None);
+            LocalFeedInfo feed = await this.nuGetFeedService.CreateLocalFeedIfNotExistsAsync(CancellationToken.None);
 
             await CreateNugitRepositoryFileIfNotExistsAsync(feed);
 
-            Console.WriteLine($"Feed: {feed.Name}, Path: {feed.LocalPath}");
+            this.logger.LogDebug("Feed: {0}, Path: {1}", feed.Name, feed.LocalPath);
 
             return 0;
         }
