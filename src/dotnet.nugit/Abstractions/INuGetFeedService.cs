@@ -2,9 +2,9 @@
 {
     public interface INuGetFeedService
     {
-        Task<LocalFeedInfo?> GetConfiguredLocalFeedAsync();
+        Task<LocalFeedInfo?> GetConfiguredLocalFeedAsync(CancellationToken cancellationToken);
         
-        Task<IEnumerable<PackageSource>> GetConfiguredPackageSourcesAsync();
+        Task<IEnumerable<PackageSource>> GetConfiguredPackageSourcesAsync(CancellationToken cancellationToken);
 
         Task<LocalFeedInfo> CreateLocalFeedIfNotExistsAsync(CancellationToken cancellationToken);
     }

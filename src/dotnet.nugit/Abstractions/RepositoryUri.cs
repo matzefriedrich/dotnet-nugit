@@ -43,7 +43,7 @@
             };
         }
 
-        public static RepositoryUri FromString(string uriString)
+        public static RepositoryUri? FromString(string uriString)
         {
             if (string.IsNullOrWhiteSpace(uriString)) throw new ArgumentException(Resources.ArgumentException_Value_cannot_be_null_or_whitespace, nameof(uriString));
 
@@ -58,17 +58,17 @@
             repositoryUri = null;
 
             bool success = Uri.TryCreate(urlString, UriKind.Absolute, out Uri? uri);
-            if (!success) return false;
+            if (!success || uri == null) return false;
 
-            string scheme = uri.Scheme;
-            if (string.Compare("https", scheme, StringComparison.InvariantCultureIgnoreCase) != 0)
+            string? scheme = uri.Scheme;
+            if (string.IsNullOrWhiteSpace(scheme) || string.Compare("https", scheme, StringComparison.InvariantCultureIgnoreCase) != 0)
                 return false;
 
             string host = uri.Host;
             string pathAndQuery = uri.PathAndQuery;
 
             const string repositoryNameExtension = ".git";
-            int repositoryNameEnd = pathAndQuery.IndexOf(repositoryNameExtension);
+            int repositoryNameEnd = pathAndQuery.IndexOf(repositoryNameExtension, StringComparison.Ordinal);
             if (repositoryNameEnd < 0) return false;
 
             string repositoryName = pathAndQuery[1..repositoryNameEnd];

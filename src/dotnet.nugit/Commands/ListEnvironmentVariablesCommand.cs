@@ -3,18 +3,12 @@
     using Abstractions;
     using Microsoft.Extensions.Logging;
 
-    public class ListEnvironmentVariablesCommand
+    public class ListEnvironmentVariablesCommand(
+        IVariablesService variablesService,
+        ILogger<ListEnvironmentVariablesCommand> logger)
     {
-        private readonly IVariablesService variablesService;
-        private readonly ILogger<ListEnvironmentVariablesCommand> logger;
-
-        public ListEnvironmentVariablesCommand(
-            IVariablesService variablesService,
-            ILogger<ListEnvironmentVariablesCommand> logger)
-        {
-            this.variablesService = variablesService ?? throw new ArgumentNullException(nameof(variablesService));
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        }
+        private readonly IVariablesService variablesService = variablesService ?? throw new ArgumentNullException(nameof(variablesService));
+        private readonly ILogger<ListEnvironmentVariablesCommand> logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         public async Task<int> ListEnvironmentVariablesAsync()
         {

@@ -32,12 +32,14 @@ namespace dotnet.nugi.UnitTest
             // Arrange
 
             // Act
-            RepositoryUri actual = RepositoryUri.FromString(referenceString);
+            RepositoryUri? actual = RepositoryUri.FromString(referenceString);
 
             // Assert
             Assert.NotNull(actual);
+            Assert.Equal(expectedDomain, actual.Host);
             Assert.Equal(expectedRepositoryName, actual.RepositoryName);
             Assert.Equal(expectedTag, actual.Tag);
+            Assert.Equal(expectedPath, actual.Path);
         }
 
         [Theory]
@@ -52,7 +54,7 @@ namespace dotnet.nugi.UnitTest
             // Arrange
 
             // Act
-            RepositoryUri actual = RepositoryUri.FromString(referenceString);
+            RepositoryUri? actual = RepositoryUri.FromString(referenceString);
 
             // Assert
             Assert.NotNull(actual);

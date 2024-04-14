@@ -17,7 +17,7 @@
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 string homePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-                return Path.Combine(homePath, ".nuget");
+                return Path.Combine(homePath, ".nuget", "NuGet", "NuGet.Config");
             }
 
             throw new NotSupportedException("The current OS platform is not supported.");

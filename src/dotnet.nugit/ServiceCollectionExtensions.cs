@@ -12,7 +12,9 @@
         {
             ArgumentNullException.ThrowIfNull(services);
 
-            services.AddSingleton(new CommandLineApplication())
+            services
+                .AddSingleton<ApplicationService>()
+                .AddSingleton(new CommandLineApplication())
                 .AddModule<ServicesModule>()
                 .AddModule<CommandsModule>();
 

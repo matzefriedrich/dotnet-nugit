@@ -6,18 +6,12 @@ namespace dotnet.nugit.Commands
     using YamlDotNet.Serialization;
     using YamlDotNet.Serialization.NamingConventions;
 
-    public sealed class InitCommand
+    public sealed class InitCommand(
+        INuGetFeedService nuGetFeedService,
+        ILogger<InitCommand> logger)
     {
-        private readonly INuGetFeedService nuGetFeedService;
-        private readonly ILogger<InitCommand> logger;
-
-        public InitCommand(
-            INuGetFeedService nuGetFeedService,
-            ILogger<InitCommand> logger)
-        {
-            this.nuGetFeedService = nuGetFeedService ?? throw new ArgumentNullException(nameof(nuGetFeedService));
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        }
+        private readonly INuGetFeedService nuGetFeedService = nuGetFeedService ?? throw new ArgumentNullException(nameof(nuGetFeedService));
+        private readonly ILogger<InitCommand> logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         public async Task<int> InitializeNewRepositoryAsync()
         {
