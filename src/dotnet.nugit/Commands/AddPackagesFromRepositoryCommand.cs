@@ -21,18 +21,21 @@ namespace dotnet.nugit.Commands
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<int> ProcessRepositoryAsync(string repositoryUrl, CancellationToken cancellationToken)
+        public async Task<int> ProcessRepositoryAsync(string repositoryReference, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(repositoryUrl)) throw new ArgumentException(Resources.ArgumentException_Value_cannot_be_null_or_whitespace, nameof(repositoryUrl));
+            if (string.IsNullOrWhiteSpace(repositoryReference)) throw new ArgumentException(Resources.ArgumentException_Value_cannot_be_null_or_whitespace, nameof(repositoryReference));
 
             LocalFeedInfo? feed = await this.nuGetFeedService.GetConfiguredLocalFeedAsync();
             if (feed == null) return 1; // TODO: define exit code 
+            
+            RepositoryUri repositoryUri = RepositoryUri.FromString(repositoryReference);
 
-            // TODO: analyze repository URL (remove path, and reference)
-            Repository.Clone(repositoryUrl, feed.LocalPath);
-            using var repository = new Repository(feed.LocalPath);
+            string cloneUrl = repositoryUri.CloneUrl();
+            Repository.Clone(cloneUrl, feed.LocalPath);
+            using IRepository repository = new Repository(feed.LocalPath);
             
             return await Task.FromResult(0);
         }
+        
     }
 }
