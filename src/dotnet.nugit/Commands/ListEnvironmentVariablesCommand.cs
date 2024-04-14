@@ -2,6 +2,7 @@
 {
     using Abstractions;
     using Microsoft.Extensions.Logging;
+    using static ExitCodes;
 
     public class ListEnvironmentVariablesCommand(
         IVariablesService variablesService,
@@ -14,7 +15,7 @@
         {
             this.WriteVariables();
 
-            return await Task.FromResult(0);
+            return await Task.FromResult(Ok);
         }
 
         private void WriteVariables()

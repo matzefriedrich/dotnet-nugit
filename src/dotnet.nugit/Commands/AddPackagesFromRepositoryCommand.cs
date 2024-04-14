@@ -4,6 +4,7 @@ namespace dotnet.nugit.Commands
     using LibGit2Sharp;
     using Microsoft.Extensions.Logging;
     using Resources;
+    using static ExitCodes;
 
     /// <summary>
     ///     Clones a remote repository, packages available projects and pushes package to the local feed.
@@ -20,18 +21,17 @@ namespace dotnet.nugit.Commands
             if (string.IsNullOrWhiteSpace(repositoryReference)) throw new ArgumentException(Resources.ArgumentException_Value_cannot_be_null_or_whitespace, nameof(repositoryReference));
 
             LocalFeedInfo? feed = await this.nuGetFeedService.GetConfiguredLocalFeedAsync(cancellationToken);
-            if (feed == null) return 1; // TODO: define exit code 
-            
+            if (feed == null) return ErrLocalFeedNotFound;
+
             RepositoryUri? repositoryUri = RepositoryUri.FromString(repositoryReference);
-            if (repositoryUri == null) return 2;
+            if (repositoryUri == null) return ErrInvalidRepositoryReference;
 
             string cloneUrl = repositoryUri.CloneUrl();
             string localRepositoryPath = Path.Combine(feed.LocalPath, repositoryUri.RepositoryName);
             Repository.Clone(cloneUrl, localRepositoryPath);
             using IRepository repository = new Repository(localRepositoryPath);
-            
-            return await Task.FromResult(0);
+
+            return await Task.FromResult(Ok);
         }
-        
     }
 }

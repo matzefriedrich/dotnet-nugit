@@ -5,6 +5,7 @@ namespace dotnet.nugit.Commands
     using Microsoft.Extensions.Logging;
     using YamlDotNet.Serialization;
     using YamlDotNet.Serialization.NamingConventions;
+    using static ExitCodes;
 
     public sealed class InitCommand(
         INuGetFeedService nuGetFeedService,
@@ -21,7 +22,7 @@ namespace dotnet.nugit.Commands
 
             this.logger.LogDebug("Feed: {0}, Path: {1}", feed.Name, feed.LocalPath);
 
-            return 0;
+            return Ok;
         }
 
         private static async Task CreateNugitRepositoryFileIfNotExistsAsync(LocalFeedInfo feed)
