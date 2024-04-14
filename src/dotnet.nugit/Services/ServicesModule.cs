@@ -11,6 +11,7 @@
             services.AddSingleton<IVariablesService, VariablesService>();
             services.AddTransient<INuGetFeedService, LocalNuGetFeedService>();
             services.AddTransient<INuGetInfoService, NuGetInfoService>();
+            services.AddTransient<IFindFilesService, FindFilesService>();
         }
     }
 }
