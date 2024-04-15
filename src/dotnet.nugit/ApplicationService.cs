@@ -57,7 +57,7 @@ namespace dotnet.nugit
             {
                 add
                     .Option<string>("--repository", "The repository URL.", ArgumentArity.ExactlyOne)
-                    .Option<bool>("--head-only", "Builds a single package from the head instead of all available releases (tag references).")
+                    .Option<bool>("--head-only", "Builds a single package from the head instead of all available releases (tag references).", ArgumentArity.ExactlyOne)
                     .OnExecute(async (string repository, bool headOnly) =>
                         await this.addPackagesFromRepositoryCommand.ProcessRepositoryAsync(repository, headOnly, this.cancellationTokenSource.Token));
             });
