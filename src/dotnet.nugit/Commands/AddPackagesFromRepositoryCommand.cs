@@ -1,5 +1,6 @@
 namespace dotnet.nugit.Commands
 {
+    using System.Collections.ObjectModel;
     using Abstractions;
     using LibGit2Sharp;
     using Microsoft.Extensions.Logging;
@@ -32,18 +33,44 @@ namespace dotnet.nugit.Commands
 
             using IRepository repository = this.OpenRepository(feed, repositoryUri, out string localRepositoryPath, TimeSpan.FromSeconds(60));
 
+            // TODO: find all tags and run the following instructions for all found references
+
+            Commit? restoreHeadTip = repository.Head.Tip;
+            var forceCheckoutOptions = new CheckoutOptions { CheckoutModifiers = CheckoutModifiers.Force };
+            ReadOnlyCollection<DirectReference> tags = repository.Refs.Where(reference => reference.IsTag).Select(reference => reference.ResolveToDirectReference()).ToList().AsReadOnly();
+            foreach (DirectReference tag in tags)
+            {
+                Commit commit;
+                if ((commit = tag.Target as Commit) == null) continue;
+                Commands.Checkout(repository, commit, forceCheckoutOptions);
+
+                await this.FindAndBuildPackagesAsync(commit, localRepositoryPath, feed, cancellationToken);
+            }
+
+            // restore
+            Commands.Checkout(repository, restoreHeadTip, forceCheckoutOptions);
+
+            return await Task.FromResult(Ok);
+        }
+
+        private async Task FindAndBuildPackagesAsync(GitObject commit, string localRepositoryPath, LocalFeedInfo feed, CancellationToken cancellationToken)
+        {
+            string? commitSha = commit.Sha[..7];
+            var versionSuffix = $"ref-{commitSha}"; // TODO: replace ref by related branch-name
+
             IAsyncEnumerable<string> projectFileFinder = this.CreateDotNetProjectFileFinder(localRepositoryPath, cancellationToken);
             List<string> projectFiles = await projectFileFinder.ToListAsync(cancellationToken);
             foreach (string file in projectFiles)
             {
                 TimeSpan timeout = TimeSpan.FromSeconds(30);
+
                 await this.dotNetUtility.BuildAsync(file, timeout, cancellationToken);
-                await this.dotNetUtility.PackAsync(file, feed, timeout, cancellationToken);
+
+                var packOptions = new PackOptions { VersionSuffix = versionSuffix };
+                await this.dotNetUtility.PackAsync(file, feed, packOptions, timeout, cancellationToken);
 
                 Console.WriteLine(file);
             }
-
-            return await Task.FromResult(Ok);
         }
 
         private IRepository OpenRepository(LocalFeedInfo feed, RepositoryUri repositoryUri, out string localRepositoryPath, TimeSpan? timeout = null, bool allowClone = true)
