@@ -14,7 +14,7 @@
         {
             if (string.IsNullOrWhiteSpace(projectFile)) throw new ArgumentException(Resources.ArgumentException_Value_cannot_be_null_or_whitespace, nameof(projectFile));
 
-            string workingDirectoryPath = Path.GetDirectoryName(projectFile);
+            string? workingDirectoryPath = Path.GetDirectoryName(projectFile);
 
             var arguments = $"build \"{projectFile}\" --configuration Release";
             await this.RunDotNetProcessAsync(arguments, workingDirectoryPath, timeout, cancellationToken);
@@ -27,7 +27,7 @@
 
             string packageTargetFolderPath = target.PackagesPath();
 
-            string workingDirectoryPath = Path.GetDirectoryName(projectFile);
+            string? workingDirectoryPath = Path.GetDirectoryName(projectFile);
 
             // TODO: load the project, reflect all NuGet-specific properties
             // Emit a (temporary) .nuspec file and build the package using: dotnet pack ~/projects/app1/project.csproj -p:NuspecFile=~/projects/app1/project.nuspec -p:NuspecBasePath=~/projects/app1/nuget
@@ -36,7 +36,7 @@
             await this.RunDotNetProcessAsync(arguments, workingDirectoryPath, timeout, cancellationToken);
         }
 
-        private async Task RunDotNetProcessAsync(string arguments, string workingDirectory, TimeSpan? timeout = null, CancellationToken cancellationToken = default)
+        private async Task RunDotNetProcessAsync(string arguments, string? workingDirectory, TimeSpan? timeout = null, CancellationToken cancellationToken = default)
         {
             using var tokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             tokenSource.CancelAfter(timeout ?? TimeSpan.FromSeconds(30));
@@ -81,6 +81,7 @@
 
             private async Task TraceStandardOutputAsync(Process? p, CancellationToken cancellationToken)
             {
+                if (p == null) return;
                 string output = await p.StandardOutput.ReadToEndAsync(cancellationToken);
                 if (string.IsNullOrWhiteSpace(output)) return;
                 this.logger.LogInformation(output);
@@ -88,7 +89,9 @@
 
             private async Task TraceStandardErrorAsync(Process? p, CancellationToken cancellationToken)
             {
-                int exitCode = p?.ExitCode ?? 0;
+                if (p == null) return;
+
+                int exitCode = p.ExitCode;
                 this.logger.LogInformation($"The {this.fileName} command completed with exit code: {{exitCode}}.", exitCode);
                 if (exitCode == 0) return;
 

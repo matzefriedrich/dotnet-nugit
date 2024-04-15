@@ -6,13 +6,13 @@ namespace dotnet.nugit
 
     internal sealed class ApplicationService : IDisposable
     {
-        private readonly CommandLineApplication app;
-        private readonly InitCommand initCommand;
         private readonly AddPackagesFromRepositoryCommand addPackagesFromRepositoryCommand;
-        private readonly ListEnvironmentVariablesCommand listEnvironmentVariablesCommand;
-        private readonly GreetingCommand sampleCommand;
+        private readonly CommandLineApplication app;
 
         private readonly CancellationTokenSource cancellationTokenSource = new();
+        private readonly InitCommand initCommand;
+        private readonly ListEnvironmentVariablesCommand listEnvironmentVariablesCommand;
+        private readonly GreetingCommand sampleCommand;
 
         public ApplicationService(
             CommandLineApplication app,
@@ -28,6 +28,11 @@ namespace dotnet.nugit
             this.sampleCommand = sampleCommand ?? throw new ArgumentNullException(nameof(sampleCommand));
 
             this.Initialize();
+        }
+
+        public void Dispose()
+        {
+            this.cancellationTokenSource.Dispose();
         }
 
         private void Initialize()
@@ -51,7 +56,9 @@ namespace dotnet.nugit
             this.app.Command("add", "Builds a package from a referenced repository and publishes it to the local feed.", add =>
             {
                 add.Option<string>("--repository", "The repository URL.", ArgumentArity.ExactlyOne)
-                    .OnExecute(async (string repository) => await this.addPackagesFromRepositoryCommand.ProcessRepositoryAsync(repository, this.cancellationTokenSource.Token));
+                    .Option<bool>("--head-only", "Builds a single package from the head instead of all available releases (tag references).")
+                    .OnExecute(async (string repository, bool headOnly) =>
+                        await this.addPackagesFromRepositoryCommand.ProcessRepositoryAsync(repository, headOnly, this.cancellationTokenSource.Token));
             });
         }
 
@@ -69,11 +76,6 @@ namespace dotnet.nugit
         {
             ArgumentNullException.ThrowIfNull(args);
             return this.app.Execute(args);
-        }
-
-        public void Dispose()
-        {
-            this.cancellationTokenSource.Dispose();
         }
     }
 }

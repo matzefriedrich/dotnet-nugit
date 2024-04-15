@@ -21,7 +21,7 @@ namespace dotnet.nugit.Commands
         private readonly ILogger<AddPackagesFromRepositoryCommand> logger = logger ?? throw new ArgumentNullException(nameof(logger));
         private readonly INuGetFeedService nuGetFeedService = nuGetFeedService ?? throw new ArgumentNullException(nameof(nuGetFeedService));
 
-        public async Task<int> ProcessRepositoryAsync(string repositoryReference, CancellationToken cancellationToken)
+        public async Task<int> ProcessRepositoryAsync(string repositoryReference, bool headOnly, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(repositoryReference)) throw new ArgumentException(Resources.ArgumentException_Value_cannot_be_null_or_whitespace, nameof(repositoryReference));
 
@@ -32,32 +32,31 @@ namespace dotnet.nugit.Commands
             if (repositoryUri == null) return ErrInvalidRepositoryReference;
 
             using IRepository repository = this.OpenRepository(feed, repositoryUri, out string localRepositoryPath, TimeSpan.FromSeconds(60));
-
-            // TODO: find all tags and run the following instructions for all found references
-
+            
             Commit? restoreHeadTip = repository.Head.Tip;
+            await this.FindAndBuildPackagesAsync(restoreHeadTip, localRepositoryPath, feed, cancellationToken);
+            
+            if (headOnly) return Ok;
+
             var forceCheckoutOptions = new CheckoutOptions { CheckoutModifiers = CheckoutModifiers.Force };
             ReadOnlyCollection<DirectReference> tags = repository.Refs.Where(reference => reference.IsTag).Select(reference => reference.ResolveToDirectReference()).ToList().AsReadOnly();
             foreach (DirectReference tag in tags)
             {
-                Commit commit;
+                Commit? commit;
                 if ((commit = tag.Target as Commit) == null) continue;
                 Commands.Checkout(repository, commit, forceCheckoutOptions);
 
                 await this.FindAndBuildPackagesAsync(commit, localRepositoryPath, feed, cancellationToken);
             }
 
-            // restore
-            Commands.Checkout(repository, restoreHeadTip, forceCheckoutOptions);
-
-            return await Task.FromResult(Ok);
+            return Ok;
         }
 
-        private async Task FindAndBuildPackagesAsync(GitObject commit, string localRepositoryPath, LocalFeedInfo feed, CancellationToken cancellationToken)
+        private async Task FindAndBuildPackagesAsync(GitObject? commit, string localRepositoryPath, LocalFeedInfo feed, CancellationToken cancellationToken)
         {
-            string? commitSha = commit.Sha[..7];
-            var versionSuffix = $"ref-{commitSha}"; // TODO: replace ref by related branch-name
-
+            string? commitSha = commit?.Sha[..7];
+            var versionSuffix = $"ref-{commitSha}";
+            
             IAsyncEnumerable<string> projectFileFinder = this.CreateDotNetProjectFileFinder(localRepositoryPath, cancellationToken);
             List<string> projectFiles = await projectFileFinder.ToListAsync(cancellationToken);
             foreach (string file in projectFiles)
