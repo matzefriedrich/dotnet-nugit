@@ -36,29 +36,32 @@ namespace dotnet.nugit.Commands
             using IRepository repository = this.OpenRepository(feed, repositoryUri, out string localRepositoryPath, TimeSpan.FromSeconds(60));
             
             Commit? restoreHeadTip = repository.Head.Tip;
-            await this.FindAndBuildPackagesAsync(restoreHeadTip, localRepositoryPath, feed, cancellationToken);
+            await this.FindAndBuildPackagesAsync(restoreHeadTip, localRepositoryPath, null, feed, cancellationToken);
             await this.workspace.AddRepositoryReferenceAsync(repositoryUri);
             
             if (headOnly) return Ok;
 
             var forceCheckoutOptions = new CheckoutOptions { CheckoutModifiers = CheckoutModifiers.Force };
-            ReadOnlyCollection<DirectReference> tags = repository.Refs.Where(reference => reference.IsTag).Select(reference => reference.ResolveToDirectReference()).ToList().AsReadOnly();
-            foreach (DirectReference tag in tags)
+            ReadOnlyCollection<Reference> tags = repository.Refs.Where(reference => reference.IsTag).ToList().AsReadOnly();
+            foreach (Reference reference in tags)
             {
+                DirectReference? directReference = reference.ResolveToDirectReference();
+                string tagName = Path.GetFileName(directReference.CanonicalName);
+
                 Commit? commit;
-                if ((commit = tag.Target as Commit) == null) continue;
+                if ((commit = directReference.Target as Commit) == null) continue;
                 Commands.Checkout(repository, commit, forceCheckoutOptions);
 
-                await this.FindAndBuildPackagesAsync(commit, localRepositoryPath, feed, cancellationToken);
+                await this.FindAndBuildPackagesAsync(commit, localRepositoryPath, tagName, feed, cancellationToken);
             }
 
             return Ok;
         }
 
-        private async Task FindAndBuildPackagesAsync(GitObject? commit, string localRepositoryPath, LocalFeedInfo feed, CancellationToken cancellationToken)
+        private async Task FindAndBuildPackagesAsync(GitObject? commit, string localRepositoryPath, string? tageName, LocalFeedInfo feed, CancellationToken cancellationToken)
         {
             string? commitSha = commit?.Sha[..7];
-            var versionSuffix = $"ref-{commitSha}";
+            string versionSuffix = tageName ?? $"ref-{commitSha}";
             
             IAsyncEnumerable<string> projectFileFinder = this.CreateDotNetProjectFileFinder(localRepositoryPath, cancellationToken);
             List<string> projectFiles = await projectFileFinder.ToListAsync(cancellationToken);
@@ -66,17 +69,17 @@ namespace dotnet.nugit.Commands
             {
                 TimeSpan timeout = TimeSpan.FromSeconds(30);
                 
-                this.logger.LogInformation("Building package for project: {ProjectFile}", file);
+                this.logger.LogInformation("Building package for project: {ProjectFile}@{ReferenceName}", file, versionSuffix);
                 await this.dotNetUtility.BuildAsync(file, timeout, cancellationToken);
                 
                 string packageTargetFolderPath = feed.PackagesPath();
                 var packOptions = new PackOptions { VersionSuffix = versionSuffix };
-                await this.dotNetUtility.PackAsync(file, packageTargetFolderPath, packOptions, timeout, cancellationToken);
-                
+                bool success = await this.dotNetUtility.TryPackAsync(file, packageTargetFolderPath, packOptions, timeout, cancellationToken);
+                if (success == false) this.logger.LogWarning("Failed to create NuGet package for project: {ProjectFile}@{ReferenceName}", file, versionSuffix);
                 if (this.workspace.TryReadConfigurationAsync(out NugitConfigurationFile? config) && config is { CopyLocal: true })
                 {
                     packageTargetFolderPath = Path.Combine(Environment.CurrentDirectory, "nupkg");
-                    await this.dotNetUtility.PackAsync(file, packageTargetFolderPath, packOptions, timeout, cancellationToken);
+                    await this.dotNetUtility.TryPackAsync(file, packageTargetFolderPath, packOptions, timeout, cancellationToken);
                 }
             }
         }

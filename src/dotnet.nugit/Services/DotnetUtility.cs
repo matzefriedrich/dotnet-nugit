@@ -20,27 +20,28 @@
             await this.RunDotNetProcessAsync(arguments, workingDirectoryPath, timeout, cancellationToken);
         }
 
-        public async Task PackAsync(string projectFile, string packageTargetFolderPath, PackOptions options, TimeSpan? timeout = null, CancellationToken cancellationToken = default)
+        public async Task<bool> TryPackAsync(string projectFile, string packageTargetFolderPath, PackOptions options, TimeSpan? timeout = null, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(projectFile)) throw new ArgumentException(Resources.ArgumentException_Value_cannot_be_null_or_whitespace, nameof(projectFile));
             if (string.IsNullOrWhiteSpace(packageTargetFolderPath)) throw new ArgumentException(Resources.ArgumentException_Value_cannot_be_null_or_whitespace, nameof(packageTargetFolderPath));
-            
+
             string? workingDirectoryPath = Path.GetDirectoryName(projectFile);
 
             // TODO: load the project, reflect all NuGet-specific properties
             // Emit a (temporary) .nuspec file and build the package using: dotnet pack ~/projects/app1/project.csproj -p:NuspecFile=~/projects/app1/project.nuspec -p:NuspecBasePath=~/projects/app1/nuget
-            
+
             var arguments = $"pack \"{projectFile}\" --output \"{packageTargetFolderPath}\" --version-suffix \"{options.VersionSuffix}\"";
-            await this.RunDotNetProcessAsync(arguments, workingDirectoryPath, timeout, cancellationToken);
+            int exitCode = await this.RunDotNetProcessAsync(arguments, workingDirectoryPath, timeout, cancellationToken);
+            return exitCode == 0;
         }
 
-        private async Task RunDotNetProcessAsync(string arguments, string? workingDirectory, TimeSpan? timeout = null, CancellationToken cancellationToken = default)
+        private async Task<int> RunDotNetProcessAsync(string arguments, string? workingDirectory, TimeSpan? timeout = null, CancellationToken cancellationToken = default)
         {
             using var tokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             tokenSource.CancelAfter(timeout ?? TimeSpan.FromSeconds(30));
 
             var p = new ProcessWrapper(this.logger, "dotnet");
-            await p.StartAndWaitForExitAsync(arguments, workingDirectory, tokenSource.Token);
+            return await p.StartAndWaitForExitAsync(arguments, workingDirectory, tokenSource.Token);
         }
 
         private sealed class ProcessWrapper
@@ -57,7 +58,7 @@
                 this.fileName = fileName;
             }
 
-            public async Task StartAndWaitForExitAsync(string arguments, string? workingDirectory = null, CancellationToken cancellationToken = default)
+            public async Task<int> StartAndWaitForExitAsync(string arguments, string? workingDirectory = null, CancellationToken cancellationToken = default)
             {
                 if (string.IsNullOrWhiteSpace(arguments)) throw new ArgumentException(Resources.ArgumentException_Value_cannot_be_null_or_whitespace, nameof(arguments));
 
@@ -75,6 +76,8 @@
                 await (p?.WaitForExitAsync(cancellationToken) ?? Task.CompletedTask);
                 await this.TraceStandardOutputAsync(p, cancellationToken);
                 await this.TraceStandardErrorAsync(p, cancellationToken);
+
+                return p?.ExitCode ?? 0;
             }
 
             private async Task TraceStandardOutputAsync(Process? p, CancellationToken cancellationToken)
