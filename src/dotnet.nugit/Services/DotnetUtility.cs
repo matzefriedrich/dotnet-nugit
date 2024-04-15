@@ -20,7 +20,7 @@
             await this.RunDotNetProcessAsync(arguments, workingDirectoryPath, timeout, cancellationToken);
         }
 
-        public async Task PackAsync(string projectFile, LocalFeedInfo target, TimeSpan? timeout = null, CancellationToken cancellationToken = default)
+        public async Task PackAsync(string projectFile, LocalFeedInfo target, PackOptions options, TimeSpan? timeout = null, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(target);
             if (string.IsNullOrWhiteSpace(projectFile)) throw new ArgumentException(Resources.ArgumentException_Value_cannot_be_null_or_whitespace, nameof(projectFile));
@@ -29,7 +29,10 @@
 
             string workingDirectoryPath = Path.GetDirectoryName(projectFile);
 
-            var arguments = $"pack \"{projectFile}\" --output \"{packageTargetFolderPath}\"";
+            // TODO: load the project, reflect all NuGet-specific properties
+            // Emit a (temporary) .nuspec file and build the package using: dotnet pack ~/projects/app1/project.csproj -p:NuspecFile=~/projects/app1/project.nuspec -p:NuspecBasePath=~/projects/app1/nuget
+            
+            var arguments = $"pack \"{projectFile}\" --output \"{packageTargetFolderPath}\" --version-suffix \"{options.VersionSuffix}\"";
             await this.RunDotNetProcessAsync(arguments, workingDirectoryPath, timeout, cancellationToken);
         }
 
