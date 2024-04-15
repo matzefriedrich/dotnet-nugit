@@ -1,6 +1,8 @@
+![.NET 8](https://github.com/matzefriedrich/dotnet-nugit/actions/workflows/dotnet.yml/badge.svg)
+
 # dotnet-nugit
 
-**dotnet nugit** is a command-line interface (CLI) that can build NuGet packages on the fly from sources available on GitHub and add them as package references to projects.  You may have already guessed it: the term **nugit** is a wordplay between NuGet and Git, which seems to be the perfect and one-and-only name that makes sense here :-)
+**dotnet nugit** is a command-line interface (CLI) that can build NuGet packages on the fly from sources available on GitHub and add them to local feed.  You may have already guessed it: the term **nugit** is a wordplay between NuGet and Git, which seems to be the perfect and one-and-only name that makes sense here :-)
 
 
 ## Build
