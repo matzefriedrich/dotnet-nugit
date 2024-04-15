@@ -1,0 +1,35 @@
+name: .NET
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    env:
+      working-directory: ./src
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+        
+    - name: Restore dependencies
+      working-directory: ${{env.working-directory}}
+      run: dotnet restore nugit.sln
+      
+    - name: Build
+      working-directory: ${{env.working-directory}}
+      run: dotnet build nugit.sln --no-restore
+      
+    - name: Test
+      working-directory: ${{env.working-directory}}
+      run: dotnet test nugit.sln --no-build --verbosity normal
