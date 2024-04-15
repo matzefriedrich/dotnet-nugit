@@ -21,7 +21,11 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
-        
+
+    - name: Init Git submodules
+      working-directory: ${{env.working-directory}}
+      run: git submodule update --init --recursive
+
     - name: Restore dependencies
       working-directory: ${{env.working-directory}}
       run: dotnet restore nugit.sln
