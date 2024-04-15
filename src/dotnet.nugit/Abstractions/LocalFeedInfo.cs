@@ -19,5 +19,8 @@
 
         public string Name { get; }
         public string LocalPath { get; }
+
+        public string PackagesPath() => Path.Combine(this.LocalPath, "packages");
+        public string RepositoriesPath() => Path.Combine(this.LocalPath, "repositories");
     }
 }

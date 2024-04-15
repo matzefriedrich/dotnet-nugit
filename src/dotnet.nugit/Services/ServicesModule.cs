@@ -7,11 +7,12 @@
     {
         public void LoadModule(IServiceCollection services)
         {
-            services.AddTransient<VariableAccessor, NugitHomeVariableAccessor>();
             services.AddSingleton<IVariablesService, VariablesService>();
+            services.AddTransient<IDotNetUtility, DotNetUtility>();
+            services.AddTransient<IFindFilesService, FindFilesService>();
             services.AddTransient<INuGetFeedService, LocalNuGetFeedService>();
             services.AddTransient<INuGetInfoService, NuGetInfoService>();
-            services.AddTransient<IFindFilesService, FindFilesService>();
+            services.AddTransient<VariableAccessor, NugitHomeVariableAccessor>();
         }
     }
 }

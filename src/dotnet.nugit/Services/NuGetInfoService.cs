@@ -9,7 +9,6 @@
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                // C:\Users\user\AppData\Roaming\NuGet\NuGet.Config
                 string appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
                 return Path.Combine(appDataPath, "NuGet", "NuGet.Config");
             }

@@ -3,8 +3,6 @@ namespace dotnet.nugit.Commands
     using Abstractions;
     using LibGit2Sharp;
     using Microsoft.Extensions.Logging;
-    using NuGet.Common;
-    using NuGet.Packaging;
     using Resources;
     using static ExitCodes;
 
@@ -14,11 +12,13 @@ namespace dotnet.nugit.Commands
     public class AddPackagesFromRepositoryCommand(
         INuGetFeedService nuGetFeedService,
         IFindFilesService finder,
+        IDotNetUtility dotNetUtility,
         ILogger<AddPackagesFromRepositoryCommand> logger)
     {
         private readonly IFindFilesService finder = finder ?? throw new ArgumentNullException(nameof(finder));
         private readonly ILogger<AddPackagesFromRepositoryCommand> logger = logger ?? throw new ArgumentNullException(nameof(logger));
         private readonly INuGetFeedService nuGetFeedService = nuGetFeedService ?? throw new ArgumentNullException(nameof(nuGetFeedService));
+        private readonly IDotNetUtility dotNetUtility = dotNetUtility ?? throw new ArgumentNullException(nameof(dotNetUtility));
 
         public async Task<int> ProcessRepositoryAsync(string repositoryReference, CancellationToken cancellationToken)
         {
@@ -36,6 +36,8 @@ namespace dotnet.nugit.Commands
             List<string> projectFiles = await projectFileFinder.ToListAsync(cancellationToken);
             foreach (string file in projectFiles)
             {
+                TimeSpan timeout = TimeSpan.FromSeconds(30);
+                await this.dotNetUtility.PackAsync(file, feed, timeout, cancellationToken);
                 Console.WriteLine(file);                
             }
 
@@ -44,13 +46,13 @@ namespace dotnet.nugit.Commands
 
         private static IRepository OpenRepository(LocalFeedInfo feed, RepositoryUri repositoryUri, out string localRepositoryPath, bool allowClone = true)
         {
-            localRepositoryPath = Path.Combine(feed.LocalPath, repositoryUri.RepositoryName);
+            localRepositoryPath = Path.Combine(feed.RepositoriesPath(), repositoryUri.RepositoryName);
             string hiddenGitFolderPath = Path.Combine(localRepositoryPath, ".git");
             if (Directory.Exists(hiddenGitFolderPath) == false)
             {
                 if (!allowClone) throw new InvalidOperationException("The requested repository does not exist.");
                 string cloneUrl = repositoryUri.CloneUrl();
-                Repository.Clone(cloneUrl, localRepositoryPath);
+                Repository.Clone(cloneUrl, localRepositoryPath, new CloneOptions { RecurseSubmodules = true });
 
                 throw new InvalidOperationException("The requested repository does not exist.");
             }

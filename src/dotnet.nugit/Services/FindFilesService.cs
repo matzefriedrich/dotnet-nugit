@@ -1,13 +1,12 @@
 ﻿namespace dotnet.nugit.Services
 {
-    using System.Security;
+    using System.Runtime.CompilerServices;
     using Abstractions;
-    using Microsoft.Extensions.Logging;
     using Resources;
 
-    public sealed class FindFilesService(ILogger<FindFilesService> logger) : IFindFilesService
+    public sealed class FindFilesService : IFindFilesService
     {
-        public async IAsyncEnumerable<string> FindAsync(string path, string pattern, Func<FileSystemEntry, Task<bool>> fetch, CancellationToken cancellationToken)
+        public async IAsyncEnumerable<string> FindAsync(string path, string pattern, Func<FileSystemEntry, Task<bool>> fetch, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(fetch);
             if (string.IsNullOrWhiteSpace(path)) throw new ArgumentException(Resources.ArgumentException_Value_cannot_be_null_or_whitespace, nameof(path));
