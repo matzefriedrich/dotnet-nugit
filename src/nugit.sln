@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "System.CommandLine.Extensio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dotnet.nugit.Resources", "dotnet.nugit.Resources\dotnet.nugit.Resources.csproj", "{546CE068-6DD5-4C32-8FDF-911B5A0B5790}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dotnet.nugi.UnitTest", "dotnet.nugi.UnitTest\dotnet.nugi.UnitTest.csproj", "{A85C3213-B671-4F5F-BC39-6FB26CAD0BB7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,6 +34,10 @@ Global
 		{546CE068-6DD5-4C32-8FDF-911B5A0B5790}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{546CE068-6DD5-4C32-8FDF-911B5A0B5790}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{546CE068-6DD5-4C32-8FDF-911B5A0B5790}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A85C3213-B671-4F5F-BC39-6FB26CAD0BB7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A85C3213-B671-4F5F-BC39-6FB26CAD0BB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A85C3213-B671-4F5F-BC39-6FB26CAD0BB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A85C3213-B671-4F5F-BC39-6FB26CAD0BB7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{6326261E-9FD5-4D2E-9F12-E6BEE25BD1AD} = {3703C65D-0FF8-4BCD-BB5E-CE29334F035B}

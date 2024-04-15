@@ -43,13 +43,14 @@ $ dotnet tool install --global ./nupkg/dotnet.nugit.1.0.0.nupkg
 
 Once installed, the tool can be invoked by the `dotnet nugit` command; the followimg sub-commands are supported:
 
-| Command   | Flag      | Description                                                                                                                                                              |
-| --------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `env`     |           | Lists environment variables and their values.                                                                                                                            |
-| `init`    |           | Adds a `.nugit` file, which holds metadata to referenced repositories.  Creates a new local NuGet feed to integrate packages with other tools like `dotnet add package`. |
-|           | `--local` | Configures nugit to put copies of nupkg files into the current workspace.                                                                                                |
-| `restore` |           | Fetches, builds and publishes packages from repos to the local nugit feed.                                                                                               |
-| `update`  |           | Fetches changes from referenced repositories (if not referenced by tag or commit-hash), rebuilds and publishes packages.                                                 |
-| `list`    |           | Lists available packages available in a repository.                                                                                                                      |
-| `add`     |           | Builds a package from a referenced repository and publishes it to the local feed.                                                                                        |
-| `tidy`    |           | Purges all packages from the local feed that are not referenced by the local workspace.                                                                                  |
+
+| Command | Flag | Description |
+| - | - | - |
+| `env` |   | Lists environment variables and their values. |
+| `init`    | | Adds a `.nugit` file, which holds metadata to referenced repositories.  Creates a new local NuGet feed to integrate packages with other tools like `dotnet add package`. |
+|           | `--local` | Configures nugit to put copies of nupkg files into the current workspace. |
+| `restore` | | Fetches, builds and publishes packages from repos to the local nugit. |
+| `update`  | | Fetches changes from referenced repositories (if not referenced by tag or commit-hash), rebuilds and publishes packages. |
+| `list`    | | Lists available packages available in a repository. |
+| `add`     | | Builds a package from a referenced repository and publishes it to the local feed. |
+| `tidy`    | | Purges all packages from the local feed that are not referenced by the local workspace. |

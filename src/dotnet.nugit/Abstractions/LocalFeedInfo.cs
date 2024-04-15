@@ -4,17 +4,21 @@
 
     public class LocalFeedInfo
     {
-        public LocalFeedInfo(string name)
+        public LocalFeedInfo()
         {
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                throw new ArgumentException(Resources.ArgumentException_Value_cannot_be_null_or_whitespace, nameof(name));
-            }
+        }
+        
+        public required string Name { get; init; }
+        public required string LocalPath { get; init; }
 
-            this.Name = name;
+        public string PackagesPath()
+        {
+            return Path.Combine(this.LocalPath, "packages");
         }
 
-        public string Name { get; }
-        public string? LocalPath { get; init; }
+        public string RepositoriesPath()
+        {
+            return Path.Combine(this.LocalPath, "repositories");
+        }
     }
 }

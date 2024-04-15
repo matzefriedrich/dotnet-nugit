@@ -1,46 +1,27 @@
-﻿using System.CommandLine;
-using System.CommandLine.Extensions;
-
-namespace dotnet.nugit;
-
-using Commands;
-using Microsoft.Extensions.DependencyInjection;
-using Services;
-
-internal static class Program
+﻿namespace dotnet.nugit
 {
-    public static int Main(string[] args)
+    using Microsoft.Extensions.DependencyInjection;
+    using Serilog;
+    using Serilog.Core;
+
+    internal static class Program
     {
-        var app = new CommandLineApplication();
-
-        var services = new ServiceCollection();
-        services
-            .AddSingleton<CommandLineApplication>()
-            .AddModule<ServicesModule>()
-            .AddModule<CommandsModule>();
-        
-        using ServiceProvider provider = services.BuildServiceProvider();
-
-        app.Command("env", "Lists environment variables and their values.", env =>
+        public static int Main(string[] args)
         {
-            var handler = provider.GetRequiredService<ListEnvironmentVariablesCommand>();
-            env.OnExecute(async () => await handler.ListEnvironmentVariablesAsync());
-        });
+            Logger logger = new LoggerConfiguration()
+                .MinimumLevel.Information()
+                .WriteTo.Console()
+                .CreateLogger();
 
-        app.Command("init", "Initializes a new local repository.", init =>
-        {
-            var handler = provider.GetRequiredService<InitCommand>();
-            init.OnExecute(async () => await handler.InitializeNewRepositoryAsync());
-        });
-        
-        app.Command("greeting", "Greets the specified person.", greeting =>
-        {
-            var handler = provider.GetRequiredService<GreetingCommand>();
-            greeting.Option<string>("--name", "The person´s name.", ArgumentArity.ExactlyOne)
-                .Option<bool>("--polite")
-                .OnExecute(async (string name, bool polite) => await handler.GreetAsync(name, polite));
-        });
+            var services = new ServiceCollection();
+            services
+                .AddLogging(builder => builder.AddSerilog(logger))
+                .AddCommandLineApplication();
 
-        return app.Execute(args);
+            using ServiceProvider provider = services.BuildServiceProvider();
+            var app = provider.GetRequiredService<ApplicationService>();
+
+            return app.Execute(args);
+        }
     }
 }
