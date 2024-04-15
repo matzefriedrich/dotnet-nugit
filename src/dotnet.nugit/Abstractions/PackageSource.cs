@@ -1,10 +1,10 @@
 ﻿namespace dotnet.nugit.Abstractions
 {
-    public sealed class PackageSource(string key, string value) : IEquatable<PackageSource>
+    public sealed class PackageSource(string key, string? value) : IEquatable<PackageSource>
     {
-        public string Key { get; } = key!;
+        public string Key { get; } = key;
 
-        public string Value { get; } = value;
+        public string? Value { get; } = value;
 
         public int? ProtocolVersion { get; init; }
 

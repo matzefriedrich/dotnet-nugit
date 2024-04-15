@@ -146,5 +146,14 @@
         {
             return HashCode.Combine((int)this.SchemeOrProtocol, this.Host, this.RepositoryName, this.Tag, this.Path);
         }
+
+        public RepositoryReference AsReference()
+        {
+            return new RepositoryReference
+            {
+                RepositoryType = "git",
+                RepositoryUrl = this.CloneUrl()
+            };
+        }
     }
 }

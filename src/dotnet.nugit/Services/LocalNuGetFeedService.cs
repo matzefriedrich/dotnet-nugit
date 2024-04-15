@@ -34,7 +34,7 @@
                     string? protocolVersionString = element.Attribute("protocolVersion")?.Value;
                     int.TryParse(protocolVersionString, out int pv);
                     string key = element.Attribute("key")?.Value!;
-                    string value = element.Attribute("value")?.Value!;
+                    string? value = element.Attribute("value")?.Value!;
                     return new PackageSource(key, value)
                     {
                         ProtocolVersion = pv == 0 ? null : pv
@@ -50,7 +50,7 @@
             await this.CreateLocalFeedIfNotExistsAsync(cancellationToken);
             PackageSource? source = (await this.GetConfiguredPackageSourcesAsync(cancellationToken)).SingleOrDefault(source => string.Compare(source.Key, DefaultLocalFeedName, StringComparison.InvariantCultureIgnoreCase) == 0);
             if (source == null) return null;
-            return new LocalFeedInfo(source.Key, source.Value);
+            return new LocalFeedInfo { Name = source.Key!, LocalPath = source.Value! };
         }
 
         public async Task<LocalFeedInfo> CreateLocalFeedIfNotExistsAsync(CancellationToken cancellationToken)
@@ -62,7 +62,7 @@
             
             IEnumerable<PackageSource> existingSources = await this.GetConfiguredPackageSourcesAsync(cancellationToken);
             Dictionary<string, PackageSource> dict = existingSources.ToDictionary(packageSource => packageSource.Key.ToLowerInvariant(), packageSource => packageSource);
-            if (dict.TryGetValue(feedName.ToLowerInvariant(), out PackageSource? source)) return new LocalFeedInfo(feedName, source.Value);
+            if (dict.TryGetValue(feedName.ToLowerInvariant(), out PackageSource? source)) return new LocalFeedInfo { Name = feedName, LocalPath = source.Value! };
             
             string nugetConfigFilePath = this.infoService.GetNuGetConfigFilePath();
             XDocument doc = XDocument.Load(nugetConfigFilePath);
@@ -71,7 +71,7 @@
             sourcesElt?.Add(new XElement("add", new XAttribute("key", feedName), new XAttribute("value", localFeedPath)));
             await doc.SaveAsync(File.OpenWrite(nugetConfigFilePath), SaveOptions.None, cancellationToken);
 
-            return new LocalFeedInfo(feedName, localFeedPath);
+            return new LocalFeedInfo { Name = feedName, LocalPath = localFeedPath };
         }
     }
 }

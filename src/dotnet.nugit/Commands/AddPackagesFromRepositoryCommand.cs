@@ -14,9 +14,11 @@ namespace dotnet.nugit.Commands
         INuGetFeedService nuGetFeedService,
         IFindFilesService finder,
         IDotNetUtility dotNetUtility,
+        INugitWorkspace workspace,
         ILogger<AddPackagesFromRepositoryCommand> logger)
     {
         private readonly IDotNetUtility dotNetUtility = dotNetUtility ?? throw new ArgumentNullException(nameof(dotNetUtility));
+        private readonly INugitWorkspace workspace = workspace ?? throw new ArgumentNullException(nameof(workspace));
         private readonly IFindFilesService finder = finder ?? throw new ArgumentNullException(nameof(finder));
         private readonly ILogger<AddPackagesFromRepositoryCommand> logger = logger ?? throw new ArgumentNullException(nameof(logger));
         private readonly INuGetFeedService nuGetFeedService = nuGetFeedService ?? throw new ArgumentNullException(nameof(nuGetFeedService));
@@ -35,6 +37,7 @@ namespace dotnet.nugit.Commands
             
             Commit? restoreHeadTip = repository.Head.Tip;
             await this.FindAndBuildPackagesAsync(restoreHeadTip, localRepositoryPath, feed, cancellationToken);
+            await this.workspace.AddRepositoryReferenceAsync(repositoryUri);
             
             if (headOnly) return Ok;
 
@@ -62,13 +65,19 @@ namespace dotnet.nugit.Commands
             foreach (string file in projectFiles)
             {
                 TimeSpan timeout = TimeSpan.FromSeconds(30);
-
+                
+                this.logger.LogInformation("Building package for project: {ProjectFile}", file);
                 await this.dotNetUtility.BuildAsync(file, timeout, cancellationToken);
-
+                
+                string packageTargetFolderPath = feed.PackagesPath();
                 var packOptions = new PackOptions { VersionSuffix = versionSuffix };
-                await this.dotNetUtility.PackAsync(file, feed, packOptions, timeout, cancellationToken);
-
-                Console.WriteLine(file);
+                await this.dotNetUtility.PackAsync(file, packageTargetFolderPath, packOptions, timeout, cancellationToken);
+                
+                if (this.workspace.TryReadConfigurationAsync(out NugitConfigurationFile? config) && config is { CopyLocal: true })
+                {
+                    packageTargetFolderPath = Path.Combine(Environment.CurrentDirectory, "nupkg");
+                    await this.dotNetUtility.PackAsync(file, packageTargetFolderPath, packOptions, timeout, cancellationToken);
+                }
             }
         }
 

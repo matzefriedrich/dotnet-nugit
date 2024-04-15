@@ -12,6 +12,7 @@
             services.AddTransient<IFindFilesService, FindFilesService>();
             services.AddTransient<INuGetFeedService, LocalNuGetFeedService>();
             services.AddTransient<INuGetInfoService, NuGetInfoService>();
+            services.AddTransient<INugitWorkspace, NugitWorkspace>();
             services.AddTransient<VariableAccessor, NugitHomeVariableAccessor>();
         }
     }

@@ -20,13 +20,11 @@
             await this.RunDotNetProcessAsync(arguments, workingDirectoryPath, timeout, cancellationToken);
         }
 
-        public async Task PackAsync(string projectFile, LocalFeedInfo target, PackOptions options, TimeSpan? timeout = null, CancellationToken cancellationToken = default)
+        public async Task PackAsync(string projectFile, string packageTargetFolderPath, PackOptions options, TimeSpan? timeout = null, CancellationToken cancellationToken = default)
         {
-            ArgumentNullException.ThrowIfNull(target);
             if (string.IsNullOrWhiteSpace(projectFile)) throw new ArgumentException(Resources.ArgumentException_Value_cannot_be_null_or_whitespace, nameof(projectFile));
-
-            string packageTargetFolderPath = target.PackagesPath();
-
+            if (string.IsNullOrWhiteSpace(packageTargetFolderPath)) throw new ArgumentException(Resources.ArgumentException_Value_cannot_be_null_or_whitespace, nameof(packageTargetFolderPath));
+            
             string? workingDirectoryPath = Path.GetDirectoryName(projectFile);
 
             // TODO: load the project, reflect all NuGet-specific properties
@@ -84,7 +82,7 @@
                 if (p == null) return;
                 string output = await p.StandardOutput.ReadToEndAsync(cancellationToken);
                 if (string.IsNullOrWhiteSpace(output)) return;
-                this.logger.LogInformation(output);
+                this.logger.LogDebug(output);
             }
 
             private async Task TraceStandardErrorAsync(Process? p, CancellationToken cancellationToken)

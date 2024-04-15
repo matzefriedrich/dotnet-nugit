@@ -1,4 +1,4 @@
-namespace dotnet.nugit
+namespace dotnet.nugit.Services
 {
     using Abstractions;
 

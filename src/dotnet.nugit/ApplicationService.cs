@@ -55,7 +55,8 @@ namespace dotnet.nugit
         {
             this.app.Command("add", "Builds a package from a referenced repository and publishes it to the local feed.", add =>
             {
-                add.Option<string>("--repository", "The repository URL.", ArgumentArity.ExactlyOne)
+                add
+                    .Option<string>("--repository", "The repository URL.", ArgumentArity.ExactlyOne)
                     .Option<bool>("--head-only", "Builds a single package from the head instead of all available releases (tag references).")
                     .OnExecute(async (string repository, bool headOnly) =>
                         await this.addPackagesFromRepositoryCommand.ProcessRepositoryAsync(repository, headOnly, this.cancellationTokenSource.Token));
@@ -64,7 +65,12 @@ namespace dotnet.nugit
 
         private void InitializeInitRepositoryCommand()
         {
-            this.app.Command("init", "Initializes a new local repository.", init => { init.OnExecute(this.initCommand.InitializeNewRepositoryAsync); });
+            this.app.Command("init", "Initializes a new local repository.", init =>
+            {
+                init
+                    .Option<bool>("--local", "Adds local copies to current workspace.")
+                    .OnExecute(async (bool copyLocal) => await this.initCommand.InitializeNewRepositoryAsync(copyLocal));
+            });
         }
 
         private void InitializeListEnvironmentVariablesCommand()

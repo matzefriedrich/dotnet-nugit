@@ -1,47 +1,47 @@
 namespace dotnet.nugit.Commands
 {
-    using System.Text;
     using Abstractions;
     using Microsoft.Extensions.Logging;
-    using YamlDotNet.Serialization;
-    using YamlDotNet.Serialization.NamingConventions;
     using static ExitCodes;
 
     public sealed class InitCommand(
         INuGetFeedService nuGetFeedService,
+        INugitWorkspace workspace,
         ILogger<InitCommand> logger)
     {
-        private readonly INuGetFeedService nuGetFeedService = nuGetFeedService ?? throw new ArgumentNullException(nameof(nuGetFeedService));
         private readonly ILogger<InitCommand> logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        private readonly INuGetFeedService nuGetFeedService = nuGetFeedService ?? throw new ArgumentNullException(nameof(nuGetFeedService));
+        private readonly INugitWorkspace workspace = workspace ?? throw new ArgumentNullException(nameof(workspace));
 
-        public async Task<int> InitializeNewRepositoryAsync()
+        public async Task<int> InitializeNewRepositoryAsync(bool copyLocal)
         {
             LocalFeedInfo feed = await this.nuGetFeedService.CreateLocalFeedIfNotExistsAsync(CancellationToken.None);
-
-            await CreateNugitRepositoryFileIfNotExistsAsync(feed);
+            await this.CreateNugitRepositoryFileIfNotExistsAsync(feed);
 
             this.logger.LogDebug("Feed: {0}, Path: {1}", feed.Name, feed.LocalPath);
 
             return Ok;
         }
 
-        private static async Task CreateNugitRepositoryFileIfNotExistsAsync(LocalFeedInfo feed)
+        private async Task CreateNugitRepositoryFileIfNotExistsAsync(LocalFeedInfo feed, bool copyLocal = false)
         {
-            string nugitFile = Path.Combine(Environment.CurrentDirectory, ".nugit");
-            if (File.Exists(nugitFile) == false)
+            await this.workspace.CreateOrUpdateConfigurationAsync(CreateNewConfigurationFile,UpdateConfigurationFile);
+
+            return;
+
+            NugitConfigurationFile UpdateConfigurationFile(NugitConfigurationFile current)
             {
-                var nugitConfigurationFile = new NugitConfigurationFile
+                current.CopyLocal = copyLocal;
+                return current;
+            }
+
+            NugitConfigurationFile CreateNewConfigurationFile()
+            {
+                return new NugitConfigurationFile
                 {
-                    LocalFeed = feed
+                    LocalFeed = feed,
+                    CopyLocal = copyLocal
                 };
-
-                await using Stream stream = new FileStream(nugitFile, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
-                await using var writer = new StreamWriter(stream, Encoding.UTF8, 4096);
-                ISerializer serializer = new SerializerBuilder()
-                    .WithNamingConvention(HyphenatedNamingConvention.Instance)
-                    .Build();
-
-                serializer.Serialize(writer, nugitConfigurationFile);
             }
         }
     }
