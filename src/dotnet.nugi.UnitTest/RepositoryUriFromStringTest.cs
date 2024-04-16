@@ -32,7 +32,7 @@ namespace dotnet.nugi.UnitTest
             // Arrange
 
             // Act
-            RepositoryUri? actual = RepositoryUri.FromString(referenceString);
+            RepositoryUri actual = RepositoryUri.FromString(referenceString);
 
             // Assert
             Assert.NotNull(actual);
@@ -54,7 +54,7 @@ namespace dotnet.nugi.UnitTest
             // Arrange
 
             // Act
-            RepositoryUri? actual = RepositoryUri.FromString(referenceString);
+            RepositoryUri actual = RepositoryUri.FromString(referenceString);
 
             // Assert
             Assert.NotNull(actual);
@@ -63,6 +63,44 @@ namespace dotnet.nugi.UnitTest
             Assert.Equal("matzefriedrich/command-line-api-extensions", actual.RepositoryName);
             Assert.Equal(expectedTag, actual.Tag);
             Assert.Equal(expectedPath, actual.Path);
+        }
+
+        [Theory]
+        [InlineData(GitRepositoryUriScheme.SecureSocket, "https://github.com/matzefriedrich/command-line-api-extensions.git", "git@github.com:matzefriedrich/command-line-api-extensions.git")]
+        [InlineData(GitRepositoryUriScheme.Https, "git@github.com:matzefriedrich/command-line-api-extensions.git", "https://github.com/matzefriedrich/command-line-api-extensions.git")]
+        public void RepositoryUri_SwitchProtocol_Test(GitRepositoryUriScheme targetScheme, string uriString, string expectedUriString)
+        {
+            // Arrange
+            RepositoryUri uri = RepositoryUri.FromString(uriString);
+            
+            // Act
+            RepositoryUri actual = uri.SwitchProtocol(targetScheme);
+            var actualUriString = actual.ToString();
+            
+            // Assert
+            Assert.NotNull(actual);
+            Assert.Equal(expectedUriString, actualUriString);
+        }
+        
+        [Theory]
+        [InlineData("https://github.com/matzefriedrich/command-line-api-extensions.git")]
+        [InlineData("git@github.com:matzefriedrich/command-line-api-extensions.git")]
+        public void RepositoryUri_AsReference_Test(string uriString)
+        {
+            // Arrange
+            RepositoryUri uri = RepositoryUri.FromString(uriString);
+            const string rootPathExpression = "/";
+            
+            // Act
+            RepositoryReference actual = uri.AsReference();
+            
+            // Assert
+            Assert.NotNull(actual);
+            Assert.Equal("git", actual.RepositoryType);
+            Assert.Equal(uri.CloneUrl(), actual.RepositoryUrl);
+            Assert.Null(actual.Tag);
+            Assert.Null(actual.Hash);
+            Assert.Equal(rootPathExpression, actual.RepositoryPath);
         }
     }
 }

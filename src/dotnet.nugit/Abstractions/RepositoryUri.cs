@@ -2,6 +2,7 @@
 {
     using System.ComponentModel;
     using System.Diagnostics.CodeAnalysis;
+    using System.Text;
     using Resources;
 
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
@@ -43,12 +44,12 @@
             };
         }
 
-        public static RepositoryUri? FromString(string uriString)
+        public static RepositoryUri FromString(string uriString)
         {
             if (string.IsNullOrWhiteSpace(uriString)) throw new ArgumentException(Resources.ArgumentException_Value_cannot_be_null_or_whitespace, nameof(uriString));
 
-            if (TryParseHttpsRepositoryUrl(uriString, out RepositoryUri? repositoryUri)) return repositoryUri;
-            if (TryParseSecureSocketRepositoryUrl(uriString, out repositoryUri)) return repositoryUri;
+            if (TryParseHttpsRepositoryUrl(uriString, out RepositoryUri? repositoryUri) && repositoryUri != null) return repositoryUri;
+            if (TryParseSecureSocketRepositoryUrl(uriString, out repositoryUri) && repositoryUri != null) return repositoryUri;
 
             throw new ArgumentException("The given URI string is of an invalid format and this cannot be parsed.");
         }
@@ -154,6 +155,35 @@
                 RepositoryType = "git",
                 RepositoryUrl = this.CloneUrl()
             };
+        }
+
+        public RepositoryUri SwitchProtocol(GitRepositoryUriScheme scheme)
+        {
+            if (!Enum.IsDefined(typeof(GitRepositoryUriScheme), scheme)) throw new InvalidEnumArgumentException(nameof(scheme), (int)scheme, typeof(GitRepositoryUriScheme));
+            return new RepositoryUri(scheme, this.Host, this.RepositoryName, this.Tag, this.Path);
+        }
+
+        public override string ToString()
+        {
+            return this.SchemeOrProtocol switch
+            {
+                GitRepositoryUriScheme.Https => FormatUriString($"https://{this.Host}/{this.RepositoryName}.git"),
+                GitRepositoryUriScheme.SecureSocket => FormatUriString($"git@{this.Host}:{this.RepositoryName}.git"),
+                _ => throw new ArgumentOutOfRangeException()
+            };
+
+            string FormatUriString(string uriString)
+            {
+                var builder = new StringBuilder(uriString);
+
+                if (string.IsNullOrWhiteSpace(this.Tag) == false) 
+                    builder.Append($"@{this.Tag}");
+                
+                if (string.IsNullOrWhiteSpace(this.Path) == false) 
+                    builder.Append($"/{this.Path}");
+
+                return builder.ToString();
+            }
         }
     }
 }
