@@ -2,6 +2,8 @@
 {
     public interface INuGetInfoService
     {
-        string GetNuGetConfigFilePath();
+        TextReader GetNuGetConfigReader();
+
+        TextWriter GetNuGetConfigWriter();
     }
 }

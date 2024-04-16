@@ -4,7 +4,7 @@ namespace dotnet.nugit.Services
 
     internal sealed class NugitHomeVariableAccessor() : VariableAccessor(ApplicationVariableNames.NugitHome)
     {
-        public override string? Value()
+        public override string Value()
         {
             string? nugitHomeVariableValue = Environment.GetEnvironmentVariable(this.Name);
             if (string.IsNullOrWhiteSpace(nugitHomeVariableValue))

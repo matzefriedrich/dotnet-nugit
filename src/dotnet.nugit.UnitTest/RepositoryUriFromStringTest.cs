@@ -1,6 +1,6 @@
 namespace dotnet.nugit.UnitTest
 {
-    using dotnet.nugit.Abstractions;
+    using Abstractions;
 
     public class RepositoryUriFromStringTest
     {
@@ -19,12 +19,17 @@ namespace dotnet.nugit.UnitTest
             return;
 
             // Act
-            void Act() => RepositoryUri.FromString(referenceString);
+            void Act()
+            {
+                RepositoryUri.FromString(referenceString);
+            }
         }
 
         [Theory]
-        [InlineData("git@github.com:matzefriedrich/command-line-api-extensions.git@v2.0.0-beta4.22272.1/src/System.CommandLine.Extensions", "github.com", "matzefriedrich/command-line-api-extensions", "v2.0.0-beta4.22272.1", "src/System.CommandLine.Extensions")]
-        [InlineData("ssh://git@github.com:matzefriedrich/command-line-api-extensions.git@v2.0.0-beta4.22272.1/src/System.CommandLine.Extensions", "github.com", "matzefriedrich/command-line-api-extensions", "v2.0.0-beta4.22272.1", "src/System.CommandLine.Extensions")]
+        [InlineData("git@github.com:matzefriedrich/command-line-api-extensions.git@v2.0.0-beta4.22272.1/src/System.CommandLine.Extensions", "github.com", "matzefriedrich/command-line-api-extensions", "v2.0.0-beta4.22272.1",
+            "src/System.CommandLine.Extensions")]
+        [InlineData("ssh://git@github.com:matzefriedrich/command-line-api-extensions.git@v2.0.0-beta4.22272.1/src/System.CommandLine.Extensions", "github.com", "matzefriedrich/command-line-api-extensions", "v2.0.0-beta4.22272.1",
+            "src/System.CommandLine.Extensions")]
         [InlineData("git@github.com:matzefriedrich/command-line-api-extensions.git@v2.0.0-beta4.22272.1", "github.com", "matzefriedrich/command-line-api-extensions", "v2.0.0-beta4.22272.1", null)]
         [InlineData("git@github.com:matzefriedrich/command-line-api-extensions.git", "github.com", "matzefriedrich/command-line-api-extensions", null, null)]
         public void RepositoryUri_FromString_parse_ssh_reference_Test(string referenceString, string expectedDomain, string expectedRepositoryName, string? expectedTag, string? expectedPath)
@@ -72,16 +77,16 @@ namespace dotnet.nugit.UnitTest
         {
             // Arrange
             RepositoryUri uri = RepositoryUri.FromString(uriString);
-            
+
             // Act
             RepositoryUri actual = uri.SwitchProtocol(targetScheme);
             var actualUriString = actual.ToString();
-            
+
             // Assert
             Assert.NotNull(actual);
             Assert.Equal(expectedUriString, actualUriString);
         }
-        
+
         [Theory]
         [InlineData("https://github.com/matzefriedrich/command-line-api-extensions.git")]
         [InlineData("git@github.com:matzefriedrich/command-line-api-extensions.git")]
@@ -90,10 +95,10 @@ namespace dotnet.nugit.UnitTest
             // Arrange
             RepositoryUri uri = RepositoryUri.FromString(uriString);
             const string rootPathExpression = "/";
-            
+
             // Act
             RepositoryReference actual = uri.AsReference();
-            
+
             // Assert
             Assert.NotNull(actual);
             Assert.Equal("git", actual.RepositoryType);
@@ -101,6 +106,24 @@ namespace dotnet.nugit.UnitTest
             Assert.Null(actual.Tag);
             Assert.Null(actual.Hash);
             Assert.Equal(rootPathExpression, actual.RepositoryPath);
+        }
+
+        [Theory]
+        [InlineData("git@github.com:owner/repo.git", "git@github.com:owner/repo.git")]
+        [InlineData("git@github.com:/owner/repo.git", "git@github.com:owner/repo.git")]
+        [InlineData("https://github.com/owner/repo.git", "https://github.com/owner/repo.git")]
+        [InlineData("https://github.com/owner/repo.git@v0.10.0/", "https://github.com/owner/repo.git")]
+        [InlineData("https://github.com/owner/repo.git@v0.10.0//", "https://github.com/owner/repo.git")]
+        public void RepositoryUri_CloneUrl_Test(string uriString, string expectedCloneUrl)
+        {
+            // Arrange
+            RepositoryUri sut = RepositoryUri.FromString(uriString);
+
+            // Act
+            string actual = sut.CloneUrl();
+
+            // Assert
+            Assert.Equal(expectedCloneUrl, actual);
         }
     }
 }

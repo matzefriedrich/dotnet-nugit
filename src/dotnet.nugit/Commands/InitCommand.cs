@@ -15,15 +15,17 @@ namespace dotnet.nugit.Commands
 
         public async Task<int> InitializeNewRepositoryAsync(bool copyLocal)
         {
-            LocalFeedInfo feed = await this.nuGetFeedService.CreateLocalFeedIfNotExistsAsync(CancellationToken.None);
+            LocalFeedInfo? feed = await this.nuGetFeedService.CreateLocalFeedIfNotExistsAsync(CancellationToken.None);
             await this.CreateNugitRepositoryFileIfNotExistsAsync(feed);
 
-            this.logger.LogDebug("Feed: {0}, Path: {1}", feed.Name, feed.LocalPath);
+            if (feed == null) return ErrCannotCreateFeed;
 
+            this.logger.LogDebug("Feed: {0}, Path: {1}", feed.Name, feed.LocalPath);
+            
             return Ok;
         }
 
-        private async Task CreateNugitRepositoryFileIfNotExistsAsync(LocalFeedInfo feed, bool copyLocal = false)
+        private async Task CreateNugitRepositoryFileIfNotExistsAsync(LocalFeedInfo? feed, bool copyLocal = false)
         {
             await this.workspace.CreateOrUpdateConfigurationAsync(CreateNewConfigurationFile,UpdateConfigurationFile);
 

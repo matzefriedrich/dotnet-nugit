@@ -15,6 +15,7 @@
             services.AddTransient<INuGetInfoService, NuGetInfoService>();
             services.AddTransient<INugitWorkspace, NugitWorkspace>();
             services.AddTransient<VariableAccessor, NugitHomeVariableAccessor>();
+            services.AddTransient<ILibGit2SharpAdapter, LibGit2SharpAdapter>();
         }
     }
 }

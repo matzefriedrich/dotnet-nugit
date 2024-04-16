@@ -38,8 +38,8 @@
         {
             return this.SchemeOrProtocol switch
             {
-                GitRepositoryUriScheme.Https => $"https://{this.Host}/{this.RepositoryName}",
-                GitRepositoryUriScheme.SecureSocket => $"git@{this.Host}/{this.RepositoryName}",
+                GitRepositoryUriScheme.Https => $"https://{this.Host}/{this.RepositoryName}.git",
+                GitRepositoryUriScheme.SecureSocket => $"git@{this.Host}:{this.RepositoryName}.git",
                 _ => throw new ArgumentOutOfRangeException()
             };
         }
@@ -95,10 +95,10 @@
             int hostNameEnd = urlString.IndexOf(':');
             if (hostNameEnd < 0) return false;
             string host = urlString[..hostNameEnd];
-            string pathAndQuery = urlString[(hostNameEnd + 1)..];
+            string pathAndQuery = urlString[(hostNameEnd + 1)..].TrimStart('/');
 
             const string repositoryNameExtension = ".git";
-            int repositoryNameEnd = pathAndQuery.IndexOf(repositoryNameExtension);
+            int repositoryNameEnd = pathAndQuery.IndexOf(repositoryNameExtension, StringComparison.Ordinal);
             if (repositoryNameEnd < 0) return false;
 
             string repositoryName = pathAndQuery[..repositoryNameEnd];
@@ -106,7 +106,7 @@
             pathAndQuery = pathAndQuery[tagAndPathStartIndex..];
             (string? tag, string? path) = ParseTagAndRelativePath(pathAndQuery);
 
-            repositoryUri = new RepositoryUri(GitRepositoryUriScheme.Https, host, repositoryName, tag, path);
+            repositoryUri = new RepositoryUri(GitRepositoryUriScheme.SecureSocket, host, repositoryName, tag, path);
             return true;
         }
 
@@ -124,11 +124,11 @@
 
             string? path = null;
 
-            string? tag = tagAndRelativePath[..tagEnd];
+            string? tag = tagAndRelativePath[..tagEnd].Trim('/');
             int p1 = tagEnd + 1;
             if (p1 < tagAndRelativePath.Length)
             {
-                path = tagAndRelativePath.Substring(p1, tagAndPathLength - p1).TrimEnd('/');
+                path = tagAndRelativePath.Substring(p1, tagAndPathLength - p1).Trim('/');
                 if (string.IsNullOrWhiteSpace(path.Trim())) path = null;
             }
 
