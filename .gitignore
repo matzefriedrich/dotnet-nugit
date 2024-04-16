@@ -3,9 +3,11 @@
 .vscode/
 
 bin/
+build/
 nupkg/
 obj/
 
 *.csproj.user
 *.DotSettings.user
+*.nupkg
 *.suo
