@@ -7,6 +7,7 @@
     {
         public void LoadModule(IServiceCollection services)
         {
+            services.AddSingleton<IWorkspaceEnvironment, CurrentDirectoryWorkspaceEnvironment>();
             services.AddSingleton<IVariablesService, VariablesService>();
             services.AddTransient<IDotNetUtility, DotNetUtility>();
             services.AddTransient<IFindFilesService, FindFilesService>();

@@ -76,7 +76,7 @@ namespace dotnet.nugit.Commands
                 var packOptions = new PackOptions { VersionSuffix = versionSuffix };
                 bool success = await this.dotNetUtility.TryPackAsync(file, packageTargetFolderPath, packOptions, timeout, cancellationToken);
                 if (success == false) this.logger.LogWarning("Failed to create NuGet package for project: {ProjectFile}@{ReferenceName}", file, versionSuffix);
-                if (this.workspace.TryReadConfigurationAsync(out NugitConfigurationFile? config) && config is { CopyLocal: true })
+                if (this.workspace.TryReadConfiguration(out NugitConfigurationFile? config) && config is { CopyLocal: true })
                 {
                     packageTargetFolderPath = Path.Combine(Environment.CurrentDirectory, "nupkg");
                     await this.dotNetUtility.TryPackAsync(file, packageTargetFolderPath, packOptions, timeout, cancellationToken);
