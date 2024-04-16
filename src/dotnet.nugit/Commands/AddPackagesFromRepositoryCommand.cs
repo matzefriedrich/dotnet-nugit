@@ -15,13 +15,15 @@ namespace dotnet.nugit.Commands
         IFindFilesService finder,
         IDotNetUtility dotNetUtility,
         INugitWorkspace workspace,
+        ILibGit2SharpAdapter git,
         ILogger<AddPackagesFromRepositoryCommand> logger)
     {
         private readonly IDotNetUtility dotNetUtility = dotNetUtility ?? throw new ArgumentNullException(nameof(dotNetUtility));
-        private readonly INugitWorkspace workspace = workspace ?? throw new ArgumentNullException(nameof(workspace));
         private readonly IFindFilesService finder = finder ?? throw new ArgumentNullException(nameof(finder));
+        private readonly ILibGit2SharpAdapter git = git ?? throw new ArgumentNullException(nameof(git));
         private readonly ILogger<AddPackagesFromRepositoryCommand> logger = logger ?? throw new ArgumentNullException(nameof(logger));
         private readonly INuGetFeedService nuGetFeedService = nuGetFeedService ?? throw new ArgumentNullException(nameof(nuGetFeedService));
+        private readonly INugitWorkspace workspace = workspace ?? throw new ArgumentNullException(nameof(workspace));
 
         public async Task<int> ProcessRepositoryAsync(string repositoryReference, bool headOnly, CancellationToken cancellationToken)
         {
@@ -30,15 +32,24 @@ namespace dotnet.nugit.Commands
             LocalFeedInfo? feed = await this.nuGetFeedService.GetConfiguredLocalFeedAsync(cancellationToken);
             if (feed == null) return ErrLocalFeedNotFound;
 
-            RepositoryUri? repositoryUri = RepositoryUri.FromString(repositoryReference);
-            if (repositoryUri == null) return ErrInvalidRepositoryReference;
+            RepositoryUri? repositoryUri;
+            try
+            {
+                repositoryUri = RepositoryUri.FromString(repositoryReference);
+            }
+            catch (ArgumentException e)
+            {
+                this.logger.LogError(e, "Failed to parse repository reference.");
+                return ErrInvalidRepositoryReference;
+            }
 
-            using IRepository repository = this.OpenRepository(feed, repositoryUri, out string localRepositoryPath, TimeSpan.FromSeconds(60));
-            
+            using IRepository? repository = this.OpenRepository(feed, repositoryUri, out string localRepositoryPath, TimeSpan.FromSeconds(60));
+            if (repository == null) return ErrCannotOpen;
+
             Commit? restoreHeadTip = repository.Head.Tip;
             await this.FindAndBuildPackagesAsync(restoreHeadTip, localRepositoryPath, null, feed, cancellationToken);
             await this.workspace.AddRepositoryReferenceAsync(repositoryUri);
-            
+
             if (headOnly) return Ok;
 
             var forceCheckoutOptions = new CheckoutOptions { CheckoutModifiers = CheckoutModifiers.Force };
@@ -62,21 +73,21 @@ namespace dotnet.nugit.Commands
         {
             string? commitSha = commit?.Sha[..7];
             string versionSuffix = tageName ?? $"ref-{commitSha}";
-            
+
             IAsyncEnumerable<string> projectFileFinder = this.CreateDotNetProjectFileFinder(localRepositoryPath, cancellationToken);
             List<string> projectFiles = await projectFileFinder.ToListAsync(cancellationToken);
             foreach (string file in projectFiles)
             {
                 TimeSpan timeout = TimeSpan.FromSeconds(30);
-                
+
                 this.logger.LogInformation("Building package for project: {ProjectFile}@{ReferenceName}", file, versionSuffix);
                 await this.dotNetUtility.BuildAsync(file, timeout, cancellationToken);
-                
+
                 string packageTargetFolderPath = feed.PackagesPath();
                 var packOptions = new PackOptions { VersionSuffix = versionSuffix };
                 bool success = await this.dotNetUtility.TryPackAsync(file, packageTargetFolderPath, packOptions, timeout, cancellationToken);
                 if (success == false) this.logger.LogWarning("Failed to create NuGet package for project: {ProjectFile}@{ReferenceName}", file, versionSuffix);
-                if (this.workspace.TryReadConfigurationAsync(out NugitConfigurationFile? config) && config is { CopyLocal: true })
+                if (this.workspace.TryReadConfiguration(out NugitConfigurationFile? config) && config is { CopyLocal: true })
                 {
                     packageTargetFolderPath = Path.Combine(Environment.CurrentDirectory, "nupkg");
                     await this.dotNetUtility.TryPackAsync(file, packageTargetFolderPath, packOptions, timeout, cancellationToken);
@@ -84,42 +95,38 @@ namespace dotnet.nugit.Commands
             }
         }
 
-        private IRepository OpenRepository(LocalFeedInfo feed, RepositoryUri repositoryUri, out string localRepositoryPath, TimeSpan? timeout = null, bool allowClone = true)
+        private IRepository? OpenRepository(LocalFeedInfo feed, RepositoryUri repositoryUri, out string localRepositoryPath, TimeSpan? timeout = null, bool allowClone = true)
         {
-            localRepositoryPath = Path.Combine(feed.RepositoriesPath(), repositoryUri.RepositoryName);
-            string hiddenGitFolderPath = Path.Combine(localRepositoryPath, ".git");
+            localRepositoryPath = null!;
+
+            string repositoriesPath = feed.RepositoriesPath();
+            string repositoryPath = Path.Combine(repositoriesPath, repositoryUri.RepositoryName.TrimStart('/'));
+
+            string hiddenGitFolderPath = Path.Combine(repositoryPath, ".git");
             if (Directory.Exists(hiddenGitFolderPath) == false)
             {
                 if (!allowClone) throw new InvalidOperationException("The requested repository does not exist.");
                 string cloneUrl = repositoryUri.CloneUrl();
 
+                this.logger.LogInformation("Cloning the repository: {RepositoryUrl} into: {LocalRepositoryPath}.", cloneUrl, localRepositoryPath);
                 using var cancellationTokenSource = new CancellationTokenSource();
                 cancellationTokenSource.CancelAfter(timeout ?? TimeSpan.FromMilliseconds(60));
 
-                using var mre = new ManualResetEventSlim();
-
-                void RepositoryOperationCompleted(RepositoryOperationContext context)
-                {
-                    this.logger.LogInformation("Completed operating on the repository.");
-                    mre.Set();
-                }
-
-                var cloneOptions = new CloneOptions
-                {
-                    RecurseSubmodules = true,
-                    FetchOptions =
-                    {
-                        RepositoryOperationCompleted = RepositoryOperationCompleted
-                    }
-                };
-
-                this.logger.LogInformation("Cloning the repository: {RepositoryUrl} into: {LocalRepositoryPath}.", cloneUrl, localRepositoryPath);
-                Repository.Clone(cloneUrl, localRepositoryPath, cloneOptions);
-                mre.Wait(cancellationTokenSource.Token);
+                if (this.git.TryCloneRepository(cloneUrl, repositoryPath, cancellationTokenSource.Token) == false)
+                    return null;
             }
 
-            this.logger.LogInformation("Opening Git repository.");
-            return new Repository(localRepositoryPath);
+            try
+            {
+                localRepositoryPath = repositoryPath;
+                this.logger.LogInformation("Opening Git repository.");
+                return new Repository(repositoryPath);
+            }
+            catch (RepositoryNotFoundException e)
+            {
+                this.logger.LogError(e, "Cannot open repository.");
+                return null;
+            }
         }
 
         private IAsyncEnumerable<string> CreateDotNetProjectFileFinder(string localRepositoryPath, CancellationToken cancellationToken)

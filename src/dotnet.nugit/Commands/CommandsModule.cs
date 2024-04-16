@@ -7,7 +7,6 @@
     {
         public void LoadModule(IServiceCollection services)
         {
-            services.AddTransient<GreetingCommand>();   // example handler
             services.AddTransient<ListEnvironmentVariablesCommand>();
             services.AddTransient<InitCommand>();
             services.AddTransient<AddPackagesFromRepositoryCommand>();

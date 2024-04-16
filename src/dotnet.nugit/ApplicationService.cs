@@ -12,20 +12,17 @@ namespace dotnet.nugit
         private readonly CancellationTokenSource cancellationTokenSource = new();
         private readonly InitCommand initCommand;
         private readonly ListEnvironmentVariablesCommand listEnvironmentVariablesCommand;
-        private readonly GreetingCommand sampleCommand;
 
         public ApplicationService(
             CommandLineApplication app,
             ListEnvironmentVariablesCommand listEnvironmentVariablesCommand,
             InitCommand initCommand,
-            AddPackagesFromRepositoryCommand addPackagesFromRepositoryCommand,
-            GreetingCommand sampleCommand)
+            AddPackagesFromRepositoryCommand addPackagesFromRepositoryCommand)
         {
             this.app = app ?? throw new ArgumentNullException(nameof(app));
             this.listEnvironmentVariablesCommand = listEnvironmentVariablesCommand ?? throw new ArgumentNullException(nameof(listEnvironmentVariablesCommand));
             this.initCommand = initCommand ?? throw new ArgumentNullException(nameof(initCommand));
             this.addPackagesFromRepositoryCommand = addPackagesFromRepositoryCommand ?? throw new ArgumentNullException(nameof(addPackagesFromRepositoryCommand));
-            this.sampleCommand = sampleCommand ?? throw new ArgumentNullException(nameof(sampleCommand));
 
             this.Initialize();
         }
@@ -42,13 +39,6 @@ namespace dotnet.nugit
             this.InitializeInitRepositoryCommand();
 
             this.InitializeAddPackagesFromRepositoryCommand();
-
-            this.app.Command("greeting", "Greets the specified person.", greeting =>
-            {
-                greeting.Option<string>("--name", "The person´s name.", ArgumentArity.ExactlyOne)
-                    .Option<bool>("--polite")
-                    .OnExecute(async (string name, bool polite) => await this.sampleCommand.GreetAsync(name, polite));
-            });
         }
 
         private void InitializeAddPackagesFromRepositoryCommand()

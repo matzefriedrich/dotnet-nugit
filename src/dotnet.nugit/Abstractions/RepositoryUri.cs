@@ -2,6 +2,7 @@
 {
     using System.ComponentModel;
     using System.Diagnostics.CodeAnalysis;
+    using System.Text;
     using Resources;
 
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
@@ -37,18 +38,18 @@
         {
             return this.SchemeOrProtocol switch
             {
-                GitRepositoryUriScheme.Https => $"https://{this.Host}/{this.RepositoryName}",
-                GitRepositoryUriScheme.SecureSocket => $"git@{this.Host}/{this.RepositoryName}",
+                GitRepositoryUriScheme.Https => $"https://{this.Host}/{this.RepositoryName}.git",
+                GitRepositoryUriScheme.SecureSocket => $"git@{this.Host}:{this.RepositoryName}.git",
                 _ => throw new ArgumentOutOfRangeException()
             };
         }
 
-        public static RepositoryUri? FromString(string uriString)
+        public static RepositoryUri FromString(string uriString)
         {
             if (string.IsNullOrWhiteSpace(uriString)) throw new ArgumentException(Resources.ArgumentException_Value_cannot_be_null_or_whitespace, nameof(uriString));
 
-            if (TryParseHttpsRepositoryUrl(uriString, out RepositoryUri? repositoryUri)) return repositoryUri;
-            if (TryParseSecureSocketRepositoryUrl(uriString, out repositoryUri)) return repositoryUri;
+            if (TryParseHttpsRepositoryUrl(uriString, out RepositoryUri? repositoryUri) && repositoryUri != null) return repositoryUri;
+            if (TryParseSecureSocketRepositoryUrl(uriString, out repositoryUri) && repositoryUri != null) return repositoryUri;
 
             throw new ArgumentException("The given URI string is of an invalid format and this cannot be parsed.");
         }
@@ -94,10 +95,10 @@
             int hostNameEnd = urlString.IndexOf(':');
             if (hostNameEnd < 0) return false;
             string host = urlString[..hostNameEnd];
-            string pathAndQuery = urlString[(hostNameEnd + 1)..];
+            string pathAndQuery = urlString[(hostNameEnd + 1)..].TrimStart('/');
 
             const string repositoryNameExtension = ".git";
-            int repositoryNameEnd = pathAndQuery.IndexOf(repositoryNameExtension);
+            int repositoryNameEnd = pathAndQuery.IndexOf(repositoryNameExtension, StringComparison.Ordinal);
             if (repositoryNameEnd < 0) return false;
 
             string repositoryName = pathAndQuery[..repositoryNameEnd];
@@ -105,7 +106,7 @@
             pathAndQuery = pathAndQuery[tagAndPathStartIndex..];
             (string? tag, string? path) = ParseTagAndRelativePath(pathAndQuery);
 
-            repositoryUri = new RepositoryUri(GitRepositoryUriScheme.Https, host, repositoryName, tag, path);
+            repositoryUri = new RepositoryUri(GitRepositoryUriScheme.SecureSocket, host, repositoryName, tag, path);
             return true;
         }
 
@@ -123,11 +124,11 @@
 
             string? path = null;
 
-            string? tag = tagAndRelativePath[..tagEnd];
+            string? tag = tagAndRelativePath[..tagEnd].Trim('/');
             int p1 = tagEnd + 1;
             if (p1 < tagAndRelativePath.Length)
             {
-                path = tagAndRelativePath.Substring(p1, tagAndPathLength - p1).TrimEnd('/');
+                path = tagAndRelativePath.Substring(p1, tagAndPathLength - p1).Trim('/');
                 if (string.IsNullOrWhiteSpace(path.Trim())) path = null;
             }
 
@@ -154,6 +155,35 @@
                 RepositoryType = "git",
                 RepositoryUrl = this.CloneUrl()
             };
+        }
+
+        public RepositoryUri SwitchProtocol(GitRepositoryUriScheme scheme)
+        {
+            if (!Enum.IsDefined(typeof(GitRepositoryUriScheme), scheme)) throw new InvalidEnumArgumentException(nameof(scheme), (int)scheme, typeof(GitRepositoryUriScheme));
+            return new RepositoryUri(scheme, this.Host, this.RepositoryName, this.Tag, this.Path);
+        }
+
+        public override string ToString()
+        {
+            return this.SchemeOrProtocol switch
+            {
+                GitRepositoryUriScheme.Https => FormatUriString($"https://{this.Host}/{this.RepositoryName}.git"),
+                GitRepositoryUriScheme.SecureSocket => FormatUriString($"git@{this.Host}:{this.RepositoryName}.git"),
+                _ => throw new ArgumentOutOfRangeException()
+            };
+
+            string FormatUriString(string uriString)
+            {
+                var builder = new StringBuilder(uriString);
+
+                if (string.IsNullOrWhiteSpace(this.Tag) == false) 
+                    builder.Append($"@{this.Tag}");
+                
+                if (string.IsNullOrWhiteSpace(this.Path) == false) 
+                    builder.Append($"/{this.Path}");
+
+                return builder.ToString();
+            }
         }
     }
 }

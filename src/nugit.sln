@@ -10,7 +10,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "System.CommandLine.Extensio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dotnet.nugit.Resources", "dotnet.nugit.Resources\dotnet.nugit.Resources.csproj", "{546CE068-6DD5-4C32-8FDF-911B5A0B5790}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dotnet.nugi.UnitTest", "dotnet.nugi.UnitTest\dotnet.nugi.UnitTest.csproj", "{A85C3213-B671-4F5F-BC39-6FB26CAD0BB7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dotnet.nugit.UnitTest", "dotnet.nugit.UnitTest\dotnet.nugit.UnitTest.csproj", "{A85C3213-B671-4F5F-BC39-6FB26CAD0BB7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,24 +1,24 @@
 namespace dotnet.nugit.Services
 {
-    using System.Text;
     using Abstractions;
     using Microsoft.Extensions.Logging;
     using YamlDotNet.Core;
     using YamlDotNet.Serialization;
     using YamlDotNet.Serialization.NamingConventions;
 
-    internal sealed class NugitWorkspace(ILogger<NugitWorkspace> logger) : INugitWorkspace
+    internal sealed class NugitWorkspace(
+        IWorkspaceEnvironment workspaceEnvironment,
+        ILogger<NugitWorkspace> logger) : INugitWorkspace
     {
+        private readonly IWorkspaceEnvironment environment = workspaceEnvironment ?? throw new ArgumentNullException(nameof(workspaceEnvironment));
         private readonly ILogger<NugitWorkspace> logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-        public bool TryReadConfigurationAsync(out NugitConfigurationFile? configurationFile)
+        public bool TryReadConfiguration(out NugitConfigurationFile? configurationFile)
         {
             configurationFile = null;
-            string nugitFile = Path.Combine(Environment.CurrentDirectory, ".nugit");
-            if (File.Exists(nugitFile) == false) return false;
 
-            using Stream stream = new FileStream(nugitFile, FileMode.Open, FileAccess.Read, FileShare.None);
-            using var reader = new StreamReader(stream, Encoding.UTF8);
+            using TextReader reader = this.environment.CreateConfigurationFileReader();
+
             IDeserializer deserializer = new DeserializerBuilder()
                 .IgnoreUnmatchedProperties()
                 .WithNamingConvention(HyphenatedNamingConvention.Instance)
@@ -35,26 +35,22 @@ namespace dotnet.nugit.Services
                 return false;
             }
         }
-        
+
         public async Task CreateOrUpdateConfigurationAsync(
-            Func<NugitConfigurationFile>? create = null, 
+            Func<NugitConfigurationFile>? create = null,
             Func<NugitConfigurationFile, NugitConfigurationFile>? update = null)
         {
-            if (this.TryReadConfigurationAsync(out NugitConfigurationFile? instance) && instance != null)
+            if (this.TryReadConfiguration(out NugitConfigurationFile? instance) && instance != null)
                 instance = update?.Invoke(instance) ?? instance;
 
             instance ??= create?.Invoke();
             if (instance == null) return;
-            
-            string nugitFile = Path.Combine(Environment.CurrentDirectory, ".nugit");
-            await using Stream stream = new FileStream(nugitFile, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
-            stream.SetLength(0);
-                
-            await using var writer = new StreamWriter(stream, Encoding.UTF8, 4096);
+
             ISerializer serializer = new SerializerBuilder()
                 .WithNamingConvention(HyphenatedNamingConvention.Instance)
                 .Build();
 
+            await using TextWriter writer = this.environment.GetConfigurationFileWriter();
             serializer.Serialize(writer, instance);
         }
 

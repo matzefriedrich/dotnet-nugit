@@ -2,7 +2,7 @@ namespace dotnet.nugit.Abstractions
 {
     public interface INugitWorkspace
     {
-        bool TryReadConfigurationAsync(out NugitConfigurationFile? configurationFile);
+        bool TryReadConfiguration(out NugitConfigurationFile? configurationFile);
 
         Task CreateOrUpdateConfigurationAsync(
             Func<NugitConfigurationFile>? create = null,

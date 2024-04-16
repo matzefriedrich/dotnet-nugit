@@ -6,6 +6,6 @@
         
         Task<IEnumerable<PackageSource>> GetConfiguredPackageSourcesAsync(CancellationToken cancellationToken);
 
-        Task<LocalFeedInfo> CreateLocalFeedIfNotExistsAsync(CancellationToken cancellationToken);
+        Task<LocalFeedInfo?> CreateLocalFeedIfNotExistsAsync(CancellationToken cancellationToken);
     }
 }

@@ -7,6 +7,7 @@
     {
         public void LoadModule(IServiceCollection services)
         {
+            services.AddSingleton<IWorkspaceEnvironment, CurrentDirectoryWorkspaceEnvironment>();
             services.AddSingleton<IVariablesService, VariablesService>();
             services.AddTransient<IDotNetUtility, DotNetUtility>();
             services.AddTransient<IFindFilesService, FindFilesService>();
@@ -14,6 +15,7 @@
             services.AddTransient<INuGetInfoService, NuGetInfoService>();
             services.AddTransient<INugitWorkspace, NugitWorkspace>();
             services.AddTransient<VariableAccessor, NugitHomeVariableAccessor>();
+            services.AddTransient<ILibGit2SharpAdapter, LibGit2SharpAdapter>();
         }
     }
 }
