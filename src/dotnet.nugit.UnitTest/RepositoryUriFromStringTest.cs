@@ -1,6 +1,6 @@
-namespace dotnet.nugi.UnitTest
+namespace dotnet.nugit.UnitTest
 {
-    using nugit.Abstractions;
+    using dotnet.nugit.Abstractions;
 
     public class RepositoryUriFromStringTest
     {
