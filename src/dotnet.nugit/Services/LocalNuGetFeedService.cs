@@ -19,9 +19,9 @@
         public async Task<IEnumerable<PackageSource>> GetConfiguredPackageSourcesAsync(CancellationToken cancellationToken)
         {
             using TextReader reader = this.infoService.GetNuGetConfigReader();
-            if (reader == StreamReader.Null) 
+            if (reader == StreamReader.Null)
                 return Array.Empty<PackageSource>();
-            
+
             XDocument doc = await XDocument.LoadAsync(reader, LoadOptions.None, cancellationToken);
 
             XElement? configurationElt = doc.Element("configuration");
@@ -65,7 +65,7 @@
                 if (reader == StreamReader.Null) return null;
                 doc = await XDocument.LoadAsync(reader, LoadOptions.None, cancellationToken);
             }
-            
+
             XElement? configurationElt = doc.Element("configuration");
             XElement? sourcesElt = configurationElt?.Element("packageSources");
             sourcesElt?.Add(new XElement("add", new XAttribute("key", feedName), new XAttribute("value", localFeedPath)));

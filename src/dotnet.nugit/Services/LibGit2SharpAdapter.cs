@@ -14,14 +14,14 @@ namespace dotnet.nugit.Services
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-        
+
         public bool TryCloneRepository(string cloneUrl, string repositoryPath, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(cloneUrl)) throw new ArgumentException(Resources.ArgumentException_Value_cannot_be_null_or_whitespace, nameof(cloneUrl));
             if (string.IsNullOrWhiteSpace(repositoryPath)) throw new ArgumentException(Resources.ArgumentException_Value_cannot_be_null_or_whitespace, nameof(repositoryPath));
 
             this.resetEventSlim.Reset();
-            
+
             var cloneOptions = new CloneOptions
             {
                 RecurseSubmodules = true,
@@ -48,7 +48,7 @@ namespace dotnet.nugit.Services
 
             return false;
         }
-        
+
         private void RepositoryOperationCompleted(RepositoryOperationContext context)
         {
             this.logger.LogInformation("Completed operating on the repository.");

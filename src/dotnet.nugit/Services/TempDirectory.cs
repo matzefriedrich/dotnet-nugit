@@ -2,29 +2,28 @@
 {
     public sealed class TempDirectory : IDisposable
     {
-        private bool disposed;
         private readonly object syncObject = new();
-        private readonly string path;
+        private bool disposed;
 
         public TempDirectory()
         {
             string folderName = Guid.NewGuid().ToString()[..8];
-            this.path = Path.Combine(Path.GetTempPath(), folderName);
+            this.DirectoryPath = Path.Combine(Path.GetTempPath(), folderName);
 
             lock (this.syncObject)
             {
-                if (Directory.Exists(this.path) == false) Directory.CreateDirectory(this.path);
+                if (Directory.Exists(this.DirectoryPath) == false) Directory.CreateDirectory(this.DirectoryPath);
             }
         }
 
-        public string DirectoryPath => this.path;
+        public string DirectoryPath { get; }
 
         public void Dispose()
         {
             lock (this.syncObject)
             {
                 if (this.disposed) return;
-                if (Directory.Exists(this.path)) Directory.Delete(this.path, true);
+                if (Directory.Exists(this.DirectoryPath)) Directory.Delete(this.DirectoryPath, true);
                 this.disposed = true;
             }
         }

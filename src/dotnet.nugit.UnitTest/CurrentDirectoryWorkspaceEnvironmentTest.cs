@@ -9,14 +9,13 @@
         {
             // Arrange
             var sut = new CurrentDirectoryWorkspaceEnvironment();
-            
+
             // Act
             string actual = sut.WorkspaceConfigurationFilePath();
-            
+
             // Assert
             Assert.False(string.IsNullOrWhiteSpace(actual));
             Assert.StartsWith(Environment.CurrentDirectory, actual);
         }
-        
     }
 }

@@ -21,13 +21,13 @@ namespace dotnet.nugit.Commands
             if (feed == null) return ErrCannotCreateFeed;
 
             this.logger.LogDebug("Feed: {0}, Path: {1}", feed.Name, feed.LocalPath);
-            
+
             return Ok;
         }
 
         private async Task CreateNugitRepositoryFileIfNotExistsAsync(LocalFeedInfo? feed, bool copyLocal = false)
         {
-            await this.workspace.CreateOrUpdateConfigurationAsync(CreateNewConfigurationFile,UpdateConfigurationFile);
+            await this.workspace.CreateOrUpdateConfigurationAsync(CreateNewConfigurationFile, UpdateConfigurationFile);
 
             return;
 

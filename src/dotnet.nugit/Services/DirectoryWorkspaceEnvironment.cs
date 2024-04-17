@@ -6,9 +6,9 @@ namespace dotnet.nugit.Services
     public abstract class DirectoryWorkspaceEnvironment : IWorkspaceEnvironment
     {
         private const string WorkspaceConfigurationFileName = ".nugit";
-        
+
         private static readonly Encoding ConfigurationFileEncoding = Encoding.UTF8;
-        
+
         public TextReader CreateConfigurationFileReader()
         {
             string nugitFile = this.WorkspaceConfigurationFilePath();

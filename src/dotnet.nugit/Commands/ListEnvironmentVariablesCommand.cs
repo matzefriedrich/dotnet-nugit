@@ -8,8 +8,8 @@
         IVariablesService variablesService,
         ILogger<ListEnvironmentVariablesCommand> logger)
     {
-        private readonly IVariablesService variablesService = variablesService ?? throw new ArgumentNullException(nameof(variablesService));
         private readonly ILogger<ListEnvironmentVariablesCommand> logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        private readonly IVariablesService variablesService = variablesService ?? throw new ArgumentNullException(nameof(variablesService));
 
         public async Task<int> ListEnvironmentVariablesAsync()
         {

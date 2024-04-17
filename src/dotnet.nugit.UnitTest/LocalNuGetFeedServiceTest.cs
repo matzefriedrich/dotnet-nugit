@@ -44,7 +44,7 @@
                                  "</configuration>";
 
             var buffer = new StringBuilder(nugetConfig);
-            
+
             var variablesServiceMock = new Mock<IVariablesService>();
             variablesServiceMock
                 .Setup(service => service.TryGetVariable(ApplicationVariableNames.NugitHome, out nugitHomeDirectoryVariableValue))
@@ -68,7 +68,7 @@
             // Act
             LocalFeedInfo? createdFeed = await sut.CreateLocalFeedIfNotExistsAsync(CancellationToken.None);
             LocalFeedInfo? actual = await sut.GetConfiguredLocalFeedAsync(CancellationToken.None);
-            
+
             // Assert
             Assert.NotNull(createdFeed);
             Assert.Equal("LocalNuGitFeed", createdFeed.Name);

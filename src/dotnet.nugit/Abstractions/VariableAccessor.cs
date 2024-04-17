@@ -6,10 +6,7 @@ namespace dotnet.nugit.Abstractions
     {
         protected VariableAccessor(string name)
         {
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                throw new ArgumentException(Resources.ArgumentException_Value_cannot_be_null_or_whitespace, nameof(name));
-            }
+            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException(Resources.ArgumentException_Value_cannot_be_null_or_whitespace, nameof(name));
 
             this.Name = name;
         }

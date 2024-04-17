@@ -10,22 +10,16 @@
 
         public bool Equals(PackageSource? other)
         {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
+            if (ReferenceEquals(null, other)) return false;
 
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
+            if (ReferenceEquals(this, other)) return true;
 
             return this.Key == other.Key && this.Value == other.Value && this.ProtocolVersion == other.ProtocolVersion;
         }
 
         public override bool Equals(object? obj)
         {
-            return ReferenceEquals(this, obj) || obj is PackageSource other && Equals(other);
+            return ReferenceEquals(this, obj) || (obj is PackageSource other && this.Equals(other));
         }
 
         public override int GetHashCode()

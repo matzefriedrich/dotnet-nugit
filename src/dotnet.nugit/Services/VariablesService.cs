@@ -19,10 +19,7 @@ namespace dotnet.nugit.Services
 
         public bool TryGetVariable(string name, out string? value)
         {
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                throw new ArgumentException(Resources.ArgumentException_Value_cannot_be_null_or_whitespace, nameof(name));
-            }
+            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException(Resources.ArgumentException_Value_cannot_be_null_or_whitespace, nameof(name));
 
             string lookupName = name.ToLowerInvariant();
             IDictionary<string, string> variables = this.GetCurrentProcessVariables();
@@ -38,10 +35,7 @@ namespace dotnet.nugit.Services
                 string variableLookupName = variableName.ToLowerInvariant();
                 processVariables[variableLookupName] = variable.Value() ?? string.Empty;
                 string? value = Environment.GetEnvironmentVariable(variableName, EnvironmentVariableTarget.Process)?.Trim();
-                if (string.IsNullOrWhiteSpace(value) == false)
-                {
-                    processVariables[variableLookupName] = value;
-                }
+                if (string.IsNullOrWhiteSpace(value) == false) processVariables[variableLookupName] = value;
             }
 
             return processVariables;

@@ -9,7 +9,7 @@
             ArgumentNullException.ThrowIfNull(variablesService);
             if (variablesService.TryGetVariable(NugitHome, out string? value) == false || string.IsNullOrWhiteSpace(value))
                 throw new InvalidOperationException($"The {NugitHome} variable is not set.");
-            
+
             return value;
         }
     }

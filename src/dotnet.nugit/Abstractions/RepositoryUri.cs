@@ -176,10 +176,10 @@
             {
                 var builder = new StringBuilder(uriString);
 
-                if (string.IsNullOrWhiteSpace(this.Tag) == false) 
+                if (string.IsNullOrWhiteSpace(this.Tag) == false)
                     builder.Append($"@{this.Tag}");
-                
-                if (string.IsNullOrWhiteSpace(this.Path) == false) 
+
+                if (string.IsNullOrWhiteSpace(this.Path) == false)
                     builder.Append($"/{this.Path}");
 
                 return builder.ToString();
