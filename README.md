@@ -34,13 +34,21 @@ $ dotnet pack src/dotnet.nugit/dotnet.nugit.csproj --configuration Release -o ./
 
 ## Installation
 
-Install the tool from the package by running the `dotnet tool install` command in the dotnet.nugit project folder:
+Install the tool from the package by using the `dotnet tool install` command; keep an eye on the `--version` option, which is required for the installation of a pre-release version of a tool package:
 
 ````bash
-$ dotnet tool install --global ./build/dotnet.nugit.0.1.0-alpha1.240417.1.nupkg
+$ dotnet tool install dotnet-nugit --version "0.1.0-alpha1.240417.1" --global --add-source ./build/
 ````
 
-Once installed, the tool can be invoked by the `dotnet nugit` command; see the next section for a list of supported commands:
+**Ensure that the tool package is installed correctly** in the user's global tools directory; this can be checked by running `dotnet tool list --global`.  Once installed, the tool can be invoked by the `dotnet nugit` command; see the next section for a list of supported commands.
+
+### Removal
+
+The removal of the tool does not require the version option; for instance: 
+
+````bash
+$ dotnet tool uninstall dotnet-nugit --global
+````
 
 ## Usage
 
