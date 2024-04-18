@@ -29,6 +29,8 @@ namespace dotnet.nugit
             this.addPackagesFromRepositoryCommand = addPackagesFromRepositoryCommand ?? throw new ArgumentNullException(nameof(addPackagesFromRepositoryCommand));
             this.restorePackagesCommand = restorePackagesCommand ?? throw new ArgumentNullException(nameof(restorePackagesCommand));
 
+            this.app.Help(Resources.Resources.Program_Help_description);
+            
             this.Initialize();
         }
 
