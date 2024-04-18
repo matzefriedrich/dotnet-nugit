@@ -22,7 +22,7 @@
         <RepositoryType>git</RepositoryType>
         <RepositoryUrl>https://github.com/matzefriedrich/dotnet-nugit</RepositoryUrl>
         <Title>dotnet nugit</Title>
-        <Version>0.1.0-alpha1.240417.1</Version>
+        <Version>0.2.0-alpha1.240418.1</Version>
     </PropertyGroup>
 
     <PropertyGroup>
