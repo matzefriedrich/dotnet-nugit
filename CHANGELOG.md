@@ -1,0 +1,29 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+- Adds the `restore` command that can restore referenced Git repositories and output packages.
+
+### Changed
+- Refactors functionality required to clone and build projects; adds a pipeline service that is utilized by the `add` and `restore` commands
+- The tool can now look up the workspace configuration file `.nugit` in the current working directory or parent directories. Commands that require workspace information can now be used from any directory within the repository tree.
+
+### Fixed
+- Removes `REQUIRED` constraint from several boolean command-line flags. Opt-in flags are `false` by default, and get set to `true` if specified.
+
+## [0.1.0-alpha1.240417.1] - 2024-04-17
+
+This is the first pre-release version that comes with a basic set of features.
+
+### Added
+- [PR #1] Adds the `env` command that lists configuration values
+- [PR #2] Adds the `init` command that can create a new workspace and the local NuGet feed.
+- [PR #3] Add the `add` command that can clone repositories, find compatible .NET projects. It uses the `dotnet pack` command to build NuGet packages.
+- [PR #4] Adds a bunch of tests
+- The application can be packed and installed locally as a pre-release version and integrates nicely with the `dotnet` CLI.
