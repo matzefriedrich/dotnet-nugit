@@ -37,7 +37,7 @@ namespace dotnet.nugit.UnitTest
                 feedService.Object,
                 workspace.Object,
                 OpenRepositoryTaskFactory,
-                ProjectBuilderTaskFactory,
+                BuildPackagesTaskFactory,
                 new NullLogger<AddPackagesFromRepositoryCommand>());
 
             const string repositoryReference = "git@github.com:/owner/repo.git";
@@ -51,7 +51,8 @@ namespace dotnet.nugit.UnitTest
             git.Verify(adapter => adapter.TryCloneRepository(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
             return;
 
-            FindAndBuildProjectsTask ProjectBuilderTaskFactory() => new(workspace.Object, dotnetUtility.Object, findFilesService.Object, new NullLogger<FindAndBuildProjectsTask>());
+            BuildRepositoryPackagesTask BuildPackagesTaskFactory() => new(BuildProjectTaskFactory, new NullLogger<BuildRepositoryPackagesTask>());
+            FindAndBuildProjectsTask BuildProjectTaskFactory() => new(workspace.Object, dotnetUtility.Object, findFilesService.Object, new NullLogger<FindAndBuildProjectsTask>());
             OpenRepositoryTask OpenRepositoryTaskFactory() => new(git.Object, fileSystem, new NullLogger<OpenRepositoryTask>());
         }
     }

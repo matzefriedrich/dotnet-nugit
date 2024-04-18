@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Abstractions;
@@ -19,9 +20,11 @@
         INugitWorkspace workspace,
         Func<OpenRepositoryTask> openRepositoryTaskFactory,
         Func<FindAndBuildProjectsTask> buildProjectsTaskFactory,
+        Func<BuildRepositoryPackagesTask> buildPackagesTaskFactory,
         ILogger<RestorePackagesCommand> logger)
     {
         private readonly Func<FindAndBuildProjectsTask> buildProjectsTaskFactory = buildProjectsTaskFactory ?? throw new ArgumentNullException(nameof(buildProjectsTaskFactory));
+        private readonly Func<BuildRepositoryPackagesTask> buildPackagesTaskFactory = buildPackagesTaskFactory ?? throw new ArgumentNullException(nameof(buildPackagesTaskFactory));
         private readonly ILogger<RestorePackagesCommand> logger = logger ?? throw new ArgumentNullException(nameof(logger));
         private readonly Func<OpenRepositoryTask> openRepositoryTaskFactory = openRepositoryTaskFactory ?? throw new ArgumentNullException(nameof(openRepositoryTaskFactory));
         private readonly INugitWorkspace workspace = workspace ?? throw new ArgumentNullException(nameof(workspace));
@@ -35,9 +38,7 @@
             IEnumerable<RepositoryReference> repositories = this.workspace.GetWorkspaceRepositories();
             foreach (RepositoryReference repositoryReference in repositories)
             {
-                RepositoryReference buildReference = repositoryReference;
-
-                RepositoryUri uri = buildReference.AsRepositoryUri();
+                RepositoryUri uri = repositoryReference.AsRepositoryUri();
                 OpenRepositoryTask openRepositoryTask = this.openRepositoryTaskFactory();
                 using IRepository? repo = openRepositoryTask.OpenRepository(feed, uri, allowClone: true);
                 if (repo == null)
@@ -46,25 +47,22 @@
                     continue;
                 }
 
-                string? repositoryReferenceTag = buildReference.Tag;
+                BuildRepositoryPackagesTask buildPackagesTask = this.buildPackagesTaskFactory();
+
+                string? repositoryReferenceTag = repositoryReference.Tag;
                 if (string.IsNullOrWhiteSpace(repositoryReferenceTag) == false)
                 {
                     Reference reference = repo.Refs[repositoryReferenceTag];
-                    DirectReference? directReference = reference?.ResolveToDirectReference();
-                    Commit? commit;
-                    if ((commit = directReference?.Target as Commit) == null)
-                    {
-                        this.logger.LogWarning("Cannot checkout tag reference: {TagName}. Using head tip instead.", repositoryReferenceTag);
-                        buildReference = buildReference.AsHeadReference();
-                        await this.workspace.UpdateRepositoryReferenceAsync(repositoryReference, buildReference);
-                        continue;
-                    }
-
-                    Commands.Checkout(repo, commit);
+                    await buildPackagesTask.BuildRepositoryPackagesAsync(repositoryReference, feed, repo, reference, null, cancellationToken);
                 }
-
-                FindAndBuildProjectsTask buildTask = this.buildProjectsTaskFactory();
-                await buildTask.FindAndBuildPackagesAsync(buildReference, feed, cancellationToken);
+                else
+                {
+                    List<Reference> tagReferences = repo.Refs.Where(reference => reference.IsTag).ToList();
+                    foreach (Reference reference in tagReferences)
+                    {
+                        await buildPackagesTask.BuildRepositoryPackagesAsync(repositoryReference, feed, repo, reference, null, cancellationToken);
+                    }
+                }
             }
 
             return await Task.FromResult(Ok);

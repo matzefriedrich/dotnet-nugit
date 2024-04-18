@@ -45,5 +45,16 @@
                 RepositoryUrl = this.RepositoryUrl
             };
         }
+
+        public RepositoryReference AsQualifiedReference(string? tagName, string? hash = null)
+        {
+            return new RepositoryReference
+            {
+                RepositoryType = this.RepositoryType,
+                RepositoryUrl = this.RepositoryUrl,
+                Tag = tagName,
+                Hash = hash
+            };
+        }
     }
 }

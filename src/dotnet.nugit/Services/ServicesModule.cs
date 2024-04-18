@@ -21,8 +21,12 @@
             services.AddTransient<ILibGit2SharpAdapter, LibGit2SharpAdapter>();
 
             // Register task factories
+            services.AddTransient<OpenRepositoryTask>();
+            services.AddTransient<FindAndBuildProjectsTask>();
+            services.AddTransient<BuildRepositoryPackagesTask>();
             services.AddTransient<Func<OpenRepositoryTask>>(provider => provider.GetRequiredService<OpenRepositoryTask>);
             services.AddTransient<Func<FindAndBuildProjectsTask>>(provider => provider.GetRequiredService<FindAndBuildProjectsTask>);
+            services.AddTransient<Func<BuildRepositoryPackagesTask>>(provider => provider.GetRequiredService<BuildRepositoryPackagesTask>);
         }
     }
 }
