@@ -1,9 +1,11 @@
 namespace dotnet.nugit.UnitTest
 {
+    using System.IO.Abstractions.TestingHelpers;
     using Abstractions;
     using Commands;
     using Microsoft.Extensions.Logging.Abstractions;
     using Moq;
+    using Services.Tasks;
     using static Commands.ExitCodes;
 
     public class AddPackagesFromRepositoryCommandTest
@@ -14,12 +16,13 @@ namespace dotnet.nugit.UnitTest
             // Arrange
             var feed = new LocalFeedInfo { Name = "TestFeed", LocalPath = "/tmp/this-path-does-not-exist" };
 
-            var feedService = new Mock<INuGetFeedService>();
+            var feedService = new Mock<INuGetFeedConfigurationService>();
             feedService
                 .Setup(service => service.GetConfiguredLocalFeedAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => feed)
                 .Verifiable();
 
+            var fileSystem = new MockFileSystem();
             var findFilesService = new Mock<IFindFilesService>();
             var dotnetUtility = new Mock<IDotNetUtility>();
             var workspace = new Mock<INugitWorkspace>();
@@ -32,10 +35,9 @@ namespace dotnet.nugit.UnitTest
 
             var sut = new AddPackagesFromRepositoryCommand(
                 feedService.Object,
-                findFilesService.Object,
-                dotnetUtility.Object,
                 workspace.Object,
-                git.Object,
+                OpenRepositoryTaskFactory,
+                ProjectBuilderTaskFactory,
                 new NullLogger<AddPackagesFromRepositoryCommand>());
 
             const string repositoryReference = "git@github.com:/owner/repo.git";
@@ -47,6 +49,10 @@ namespace dotnet.nugit.UnitTest
             Assert.Equal(ErrCannotOpen, exitCode);
 
             git.Verify(adapter => adapter.TryCloneRepository(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+            return;
+
+            FindAndBuildProjectsTask ProjectBuilderTaskFactory() => new(workspace.Object, dotnetUtility.Object, findFilesService.Object, new NullLogger<FindAndBuildProjectsTask>());
+            OpenRepositoryTask OpenRepositoryTaskFactory() => new(git.Object, fileSystem, new NullLogger<OpenRepositoryTask>());
         }
     }
 }

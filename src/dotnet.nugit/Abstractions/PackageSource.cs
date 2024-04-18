@@ -1,5 +1,7 @@
 ﻿namespace dotnet.nugit.Abstractions
 {
+    using System;
+
     public sealed class PackageSource(string key, string? value) : IEquatable<PackageSource>
     {
         public string Key { get; } = key;

@@ -1,19 +1,17 @@
 namespace dotnet.nugit.Services
 {
-    using Abstractions;
+    using System;
+    using System.Threading;
     using LibGit2Sharp;
     using Microsoft.Extensions.Logging;
+    using nugit.Abstractions;
     using Resources;
 
-    internal sealed class LibGit2SharpAdapter : ILibGit2SharpAdapter
+    internal sealed class LibGit2SharpAdapter(
+        ILogger<LibGit2SharpAdapter> logger) : ILibGit2SharpAdapter
     {
-        private readonly ILogger<LibGit2SharpAdapter> logger;
+        private readonly ILogger<LibGit2SharpAdapter> logger = logger ?? throw new ArgumentNullException(nameof(logger));
         private readonly ManualResetEventSlim resetEventSlim = new();
-
-        public LibGit2SharpAdapter(ILogger<LibGit2SharpAdapter> logger)
-        {
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        }
 
         public bool TryCloneRepository(string cloneUrl, string repositoryPath, CancellationToken cancellationToken)
         {

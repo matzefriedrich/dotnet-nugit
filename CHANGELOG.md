@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Adds the `restore` command that can restore referenced Git repositories and output packages.
+- Because lots of things require IO, from now on `System.IO.Abstractions` is used to make IO acess testable
 
 ### Changed
 - Refactors functionality required to clone and build projects; adds a pipeline service that is utilized by the `add` and `restore` commands

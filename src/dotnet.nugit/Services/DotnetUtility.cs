@@ -1,20 +1,28 @@
 ﻿namespace dotnet.nugit.Services
 {
+    using System;
     using System.Diagnostics;
+    using System.IO;
+    using System.IO.Abstractions;
     using System.Text;
-    using Abstractions;
+    using System.Threading;
+    using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
+    using nugit.Abstractions;
     using Resources;
 
-    internal sealed class DotNetUtility(ILogger<DotNetUtility> logger) : IDotNetUtility
+    internal sealed class DotNetUtility(
+        IFileSystem fileSystem,
+        ILogger<DotNetUtility> logger) : IDotNetUtility
     {
+        private readonly IFileSystem fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         private readonly ILogger<DotNetUtility> logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         public async Task BuildAsync(string projectFile, TimeSpan? timeout = null, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(projectFile)) throw new ArgumentException(Resources.ArgumentException_Value_cannot_be_null_or_whitespace, nameof(projectFile));
 
-            string? workingDirectoryPath = Path.GetDirectoryName(projectFile);
+            string? workingDirectoryPath = this.fileSystem.Path.GetDirectoryName(projectFile);
 
             var arguments = $"build \"{projectFile}\" --configuration Release";
             await this.RunDotNetProcessAsync(arguments, workingDirectoryPath, timeout, cancellationToken);

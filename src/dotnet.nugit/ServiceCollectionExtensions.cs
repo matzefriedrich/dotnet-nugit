@@ -1,6 +1,8 @@
 ﻿namespace dotnet.nugit
 {
+    using System;
     using System.CommandLine.Extensions;
+    using System.IO.Abstractions;
     using Abstractions;
     using Commands;
     using Microsoft.Extensions.DependencyInjection;
@@ -13,6 +15,7 @@
             ArgumentNullException.ThrowIfNull(services);
 
             services
+                .AddTransient<IFileSystem, FileSystem>()
                 .AddSingleton<ApplicationService>()
                 .AddSingleton(new CommandLineApplication())
                 .AddModule<ServicesModule>()

@@ -1,8 +1,11 @@
 namespace dotnet.nugit.Services
 {
-    public sealed class TemporaryDirectoryWorkspaceEnvironment : DirectoryWorkspaceEnvironment, IDisposable
+    using System;
+    using System.IO.Abstractions;
+
+    public sealed class TemporaryDirectoryWorkspaceEnvironment(IFileSystem fileSystem) : DirectoryWorkspaceEnvironment(fileSystem), IDisposable
     {
-        private readonly TempDirectory directory = new();
+        private readonly TempDirectory directory = new(fileSystem);
 
         public void Dispose()
         {

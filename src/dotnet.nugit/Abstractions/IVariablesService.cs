@@ -1,5 +1,7 @@
 namespace dotnet.nugit.Abstractions
 {
+    using System.Collections.Generic;
+
     public interface IVariablesService
     {
         IEnumerable<string> GetVariableNames();

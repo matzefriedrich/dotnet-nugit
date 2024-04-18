@@ -1,21 +1,24 @@
 namespace dotnet.nugit.Commands
 {
+    using System;
+    using System.Threading;
+    using System.Threading.Tasks;
     using Abstractions;
     using Microsoft.Extensions.Logging;
     using static ExitCodes;
 
     public sealed class InitCommand(
-        INuGetFeedService nuGetFeedService,
+        INuGetFeedConfigurationService nuGetFeedConfigurationService,
         INugitWorkspace workspace,
         ILogger<InitCommand> logger)
     {
         private readonly ILogger<InitCommand> logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        private readonly INuGetFeedService nuGetFeedService = nuGetFeedService ?? throw new ArgumentNullException(nameof(nuGetFeedService));
+        private readonly INuGetFeedConfigurationService nuGetFeedConfigurationService = nuGetFeedConfigurationService ?? throw new ArgumentNullException(nameof(nuGetFeedConfigurationService));
         private readonly INugitWorkspace workspace = workspace ?? throw new ArgumentNullException(nameof(workspace));
 
         public async Task<int> InitializeNewRepositoryAsync(bool copyLocal)
         {
-            LocalFeedInfo? feed = await this.nuGetFeedService.CreateLocalFeedIfNotExistsAsync(CancellationToken.None);
+            LocalFeedInfo? feed = await this.nuGetFeedConfigurationService.CreateLocalFeedIfNotExistsAsync(CancellationToken.None);
             await this.CreateNugitRepositoryFileIfNotExistsAsync(feed);
 
             if (feed == null) return ErrCannotCreateFeed;

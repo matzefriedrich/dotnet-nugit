@@ -10,6 +10,7 @@
             services.AddTransient<ListEnvironmentVariablesCommand>();
             services.AddTransient<InitCommand>();
             services.AddTransient<AddPackagesFromRepositoryCommand>();
+            services.AddTransient<RestorePackagesCommand>();
         }
     }
 }
