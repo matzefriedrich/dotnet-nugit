@@ -9,11 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Adds the `restore` command that can restore referenced Git repositories and output packages.
-- Because lots of things require IO, from now on `System.IO.Abstractions` is used to make IO acess testable
 
 ### Changed
-- Refactors functionality required to clone and build projects; adds a pipeline service that is utilized by the `add` and `restore` commands
+- The functionality required to clone and build projects got refactored; service types for common tasks have been added and are now utilized by the `add` and `restore` commands.
 - The tool can now look up the workspace configuration file `.nugit` in the current working directory or parent directories. Commands that require workspace information can now be used from any directory within the repository tree.
+- Because lots of things require IO, from now on `System.IO.Abstractions` is used to make IO acess testable
+- Support of implicit usings got disabled (namespace imports indicate dependencies and we wanna see them)
 
 ### Fixed
 - Removes `REQUIRED` constraint from several boolean command-line flags. Opt-in flags are `false` by default, and get set to `true` if specified.
