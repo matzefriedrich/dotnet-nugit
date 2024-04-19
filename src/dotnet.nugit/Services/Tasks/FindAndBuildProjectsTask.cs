@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.IO.Abstractions;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -18,10 +19,12 @@
         INugitWorkspace workspace,
         IDotNetUtility dotNetUtility,
         IFindFilesService finder,
+        IFileSystem fileSystem,
         ILogger<FindAndBuildProjectsTask> logger) : IFindAndBuildProjectsTask
     {
         private readonly IDotNetUtility dotNetUtility = dotNetUtility ?? throw new ArgumentNullException(nameof(dotNetUtility));
         private readonly IFindFilesService finder = finder ?? throw new ArgumentNullException(nameof(finder));
+        private readonly IFileSystem fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         private readonly ILogger<FindAndBuildProjectsTask> logger = logger ?? throw new ArgumentNullException(nameof(logger));
         private readonly INugitWorkspace workspace = workspace ?? throw new ArgumentNullException(nameof(workspace));
 
@@ -46,7 +49,7 @@
                 if (success == false) this.logger.LogWarning("Failed to create NuGet package for project: {ProjectFile}@{ReferenceName}", file, versionSuffix);
                 if (this.workspace.TryReadConfiguration(out NugitConfigurationFile? config) && config is { CopyLocal: true })
                 {
-                    packageTargetFolderPath = Path.Combine(Environment.CurrentDirectory, "nupkg");
+                    packageTargetFolderPath = this.fileSystem.Path.Combine(this.fileSystem.Directory.GetCurrentDirectory(), "nupkg");
                     await this.dotNetUtility.TryPackAsync(file, packageTargetFolderPath, packOptions, timeout, cancellationToken);
                 }
             }
@@ -60,7 +63,7 @@
             return this.finder.FindAsync(localRepositoryPath, "*.*", async entry =>
             {
                 if (entry.IsDirectory) return await Task.FromResult(true);
-                string extension = Path.GetExtension(entry.Path);
+                string extension = this.fileSystem.Path.GetExtension(entry.Path);
                 return extension switch
                 {
                     csproj => true,

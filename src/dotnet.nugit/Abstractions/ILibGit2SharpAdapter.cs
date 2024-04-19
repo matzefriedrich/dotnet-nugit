@@ -8,5 +8,7 @@ namespace dotnet.nugit.Abstractions
         bool TryCloneRepository(string cloneUrl, string repositoryPath, CancellationToken cancellationToken);
 
         IRepository OpenRepository(string path);
+        
+        void Checkout(IRepository repo, Commit commit, CheckoutOptions checkoutOptions);
     }
 }

@@ -54,6 +54,15 @@ namespace dotnet.nugit.Services
             return new Repository(path);
         }
 
+        public void Checkout(IRepository repo, Commit commit, CheckoutOptions checkoutOptions)
+        {
+            ArgumentNullException.ThrowIfNull(repo);
+            ArgumentNullException.ThrowIfNull(commit);
+            ArgumentNullException.ThrowIfNull(checkoutOptions);
+
+            Commands.Checkout(repo, commit, checkoutOptions);
+        }
+
         private void RepositoryOperationCompleted(RepositoryOperationContext context)
         {
             this.logger.LogInformation("Completed operating on the repository.");

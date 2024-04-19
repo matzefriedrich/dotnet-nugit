@@ -4,7 +4,7 @@
 
     public class RepositoryReference : IEquatable<RepositoryReference>
     {
-        public string RepositoryType { get; init; } = "git";
+        public string RepositoryType { get; init; } = RepositoryTypes.Git;
         public string? RepositoryUrl { get; init; }
         public string? Hash { get; init; }
         public string RepositoryPath { get; init; } = "/";

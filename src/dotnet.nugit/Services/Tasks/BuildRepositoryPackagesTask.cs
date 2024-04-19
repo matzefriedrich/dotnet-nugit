@@ -13,10 +13,12 @@
     }
 
     internal class BuildRepositoryPackagesTask(
-        Func<FindAndBuildProjectsTask> buildProjectTaskFactory,
+        ILibGit2SharpAdapter git,
+        Func<IFindAndBuildProjectsTask> buildProjectTaskFactory,
         ILogger<BuildRepositoryPackagesTask> logger) : IBuildRepositoryPackagesTask
     {
-        private readonly Func<FindAndBuildProjectsTask> buildProjectTaskFactory = buildProjectTaskFactory ?? throw new ArgumentNullException(nameof(buildProjectTaskFactory));
+        private readonly ILibGit2SharpAdapter git = git ?? throw new ArgumentNullException(nameof(git));
+        private readonly Func<IFindAndBuildProjectsTask> buildProjectTaskFactory = buildProjectTaskFactory ?? throw new ArgumentNullException(nameof(buildProjectTaskFactory));
         private readonly ILogger<BuildRepositoryPackagesTask> logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         public async Task<RepositoryReference> BuildRepositoryPackagesAsync(RepositoryReference buildReference, LocalFeedInfo feed, IRepository repo, Reference? reference = null, Commit? commit = null, CancellationToken cancellationToken = default)
@@ -37,8 +39,8 @@
 
             var forceCheckoutOptions = new CheckoutOptions { CheckoutModifiers = CheckoutModifiers.Force };
 
-            Commands.Checkout(repo, commit, forceCheckoutOptions);
-            FindAndBuildProjectsTask buildTask = this.buildProjectTaskFactory();
+            this.git.Checkout(repo, commit, forceCheckoutOptions);
+            IFindAndBuildProjectsTask buildTask = this.buildProjectTaskFactory();
 
             RepositoryReference qualifiedBuildReference = buildReference.AsQualifiedReference(directReference?.CanonicalName, commit?.Sha);
             await buildTask.FindAndBuildPackagesAsync(qualifiedBuildReference, feed, cancellationToken);
