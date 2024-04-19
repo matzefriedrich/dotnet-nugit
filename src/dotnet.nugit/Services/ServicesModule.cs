@@ -1,9 +1,8 @@
 ﻿namespace dotnet.nugit.Services
 {
     using System;
-    using System.IO.Abstractions;
+    using Abstractions;
     using Microsoft.Extensions.DependencyInjection;
-    using nugit.Abstractions;
     using Tasks;
 
     internal sealed class ServicesModule : IModule
@@ -20,13 +19,19 @@
             services.AddTransient<VariableAccessor, NugitHomeVariableAccessor>();
             services.AddTransient<ILibGit2SharpAdapter, LibGit2SharpAdapter>();
 
-            // Register task factories
-            services.AddTransient<OpenRepositoryTask>();
-            services.AddTransient<FindAndBuildProjectsTask>();
-            services.AddTransient<BuildRepositoryPackagesTask>();
-            services.AddTransient<Func<OpenRepositoryTask>>(provider => provider.GetRequiredService<OpenRepositoryTask>);
-            services.AddTransient<Func<FindAndBuildProjectsTask>>(provider => provider.GetRequiredService<FindAndBuildProjectsTask>);
-            services.AddTransient<Func<BuildRepositoryPackagesTask>>(provider => provider.GetRequiredService<BuildRepositoryPackagesTask>);
+            ConfigureTaskServices(services);
+        }
+
+        private static void ConfigureTaskServices(IServiceCollection services)
+        {
+            services.AddTransient<IOpenRepositoryTask, OpenRepositoryTask>();
+            services.AddTransient<Func<IOpenRepositoryTask>>(provider => provider.GetRequiredService<OpenRepositoryTask>);
+
+            services.AddTransient<IFindAndBuildProjectsTask, FindAndBuildProjectsTask>();
+            services.AddTransient<Func<IFindAndBuildProjectsTask>>(provider => provider.GetRequiredService<FindAndBuildProjectsTask>);
+
+            services.AddTransient<IBuildRepositoryPackagesTask, BuildRepositoryPackagesTask>();
+            services.AddTransient<Func<IBuildRepositoryPackagesTask>>(provider => provider.GetRequiredService<BuildRepositoryPackagesTask>);
         }
     }
 }

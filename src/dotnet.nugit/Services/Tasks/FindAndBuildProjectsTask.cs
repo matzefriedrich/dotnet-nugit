@@ -9,11 +9,16 @@
     using Microsoft.Extensions.Logging;
     using nugit.Abstractions;
 
-    public sealed class FindAndBuildProjectsTask(
+    public interface IFindAndBuildProjectsTask
+    {
+        Task FindAndBuildPackagesAsync(RepositoryReference qualifiedRepositoryReference, LocalFeedInfo feed, CancellationToken cancellationToken);
+    }
+
+    internal sealed class FindAndBuildProjectsTask(
         INugitWorkspace workspace,
         IDotNetUtility dotNetUtility,
         IFindFilesService finder,
-        ILogger<FindAndBuildProjectsTask> logger)
+        ILogger<FindAndBuildProjectsTask> logger) : IFindAndBuildProjectsTask
     {
         private readonly IDotNetUtility dotNetUtility = dotNetUtility ?? throw new ArgumentNullException(nameof(dotNetUtility));
         private readonly IFindFilesService finder = finder ?? throw new ArgumentNullException(nameof(finder));

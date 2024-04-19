@@ -7,9 +7,14 @@
     using LibGit2Sharp;
     using Microsoft.Extensions.Logging;
 
-    public class BuildRepositoryPackagesTask(
+    public interface IBuildRepositoryPackagesTask
+    {
+        Task<RepositoryReference> BuildRepositoryPackagesAsync(RepositoryReference buildReference, LocalFeedInfo feed, IRepository repo, Reference? reference = null, Commit? commit = null, CancellationToken cancellationToken = default);
+    }
+
+    internal class BuildRepositoryPackagesTask(
         Func<FindAndBuildProjectsTask> buildProjectTaskFactory,
-        ILogger<BuildRepositoryPackagesTask> logger)
+        ILogger<BuildRepositoryPackagesTask> logger) : IBuildRepositoryPackagesTask
     {
         private readonly Func<FindAndBuildProjectsTask> buildProjectTaskFactory = buildProjectTaskFactory ?? throw new ArgumentNullException(nameof(buildProjectTaskFactory));
         private readonly ILogger<BuildRepositoryPackagesTask> logger = logger ?? throw new ArgumentNullException(nameof(logger));

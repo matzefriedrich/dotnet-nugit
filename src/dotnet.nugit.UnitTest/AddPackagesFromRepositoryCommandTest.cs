@@ -1,8 +1,8 @@
 namespace dotnet.nugit.UnitTest
 {
-    using System.IO.Abstractions.TestingHelpers;
     using Abstractions;
     using Commands;
+    using LibGit2Sharp;
     using Microsoft.Extensions.Logging.Abstractions;
     using Moq;
     using Services.Tasks;
@@ -11,9 +11,10 @@ namespace dotnet.nugit.UnitTest
     public class AddPackagesFromRepositoryCommandTest
     {
         [Fact]
-        public async Task AddPackagesFromRepositoryCommand_ProcessRepositoryAsync_Test()
+        public async Task AddPackagesFromRepositoryCommand_ProcessRepositoryAsync_does_not_process_tags_if_head_only_specified_Test()
         {
             // Arrange
+            const string repositoryReference = "git@github.com:/owner/repo.git";
             var feed = new LocalFeedInfo { Name = "TestFeed", LocalPath = "/tmp/this-path-does-not-exist" };
 
             var feedService = new Mock<INuGetFeedConfigurationService>();
@@ -22,15 +23,20 @@ namespace dotnet.nugit.UnitTest
                 .ReturnsAsync(() => feed)
                 .Verifiable();
 
-            var fileSystem = new MockFileSystem();
-            var findFilesService = new Mock<IFindFilesService>();
-            var dotnetUtility = new Mock<IDotNetUtility>();
             var workspace = new Mock<INugitWorkspace>();
 
-            var git = new Mock<ILibGit2SharpAdapter>();
-            git
-                .Setup(adapter => adapter.TryCloneRepository(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .Returns(true)
+            var repositoryMock = new Mock<IRepository>();
+            repositoryMock.SetupGet(repository => repository.Refs).Verifiable();
+
+            var openRepositoryMock = new Mock<IOpenRepositoryTask>();
+            openRepositoryMock
+                .Setup(task => task.OpenRepository(feed, It.IsAny<RepositoryUri>(), It.IsAny<TimeSpan?>(), true))
+                .Returns(repositoryMock.Object)
+                .Verifiable();
+
+            var buildPackagesTaskMock = new Mock<IBuildRepositoryPackagesTask>();
+            buildPackagesTaskMock
+                .Setup(task => task.BuildRepositoryPackagesAsync(It.IsAny<RepositoryReference>(), feed, repositoryMock.Object, null, null, It.IsAny<CancellationToken>()))
                 .Verifiable();
 
             var sut = new AddPackagesFromRepositoryCommand(
@@ -40,20 +46,28 @@ namespace dotnet.nugit.UnitTest
                 BuildPackagesTaskFactory,
                 new NullLogger<AddPackagesFromRepositoryCommand>());
 
-            const string repositoryReference = "git@github.com:/owner/repo.git";
+            const bool headOnly = true;
 
             // Act
-            int exitCode = await sut.ProcessRepositoryAsync(repositoryReference, true, CancellationToken.None);
+            int exitCode = await sut.ProcessRepositoryAsync(repositoryReference, headOnly, CancellationToken.None);
 
             // Assert
-            Assert.Equal(ErrCannotOpen, exitCode);
+            Assert.Equal(Ok, exitCode);
 
-            git.Verify(adapter => adapter.TryCloneRepository(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+            openRepositoryMock.Verify(task => task.OpenRepository(feed, It.IsAny<RepositoryUri>(), It.IsAny<TimeSpan?>(), true), Times.Once);
+            buildPackagesTaskMock.Verify(task => task.BuildRepositoryPackagesAsync(It.IsAny<RepositoryReference>(), feed, repositoryMock.Object, null, null, It.IsAny<CancellationToken>()), Times.Once);
+            repositoryMock.VerifyGet(repository => repository.Refs, Times.Never);
             return;
 
-            BuildRepositoryPackagesTask BuildPackagesTaskFactory() => new(BuildProjectTaskFactory, new NullLogger<BuildRepositoryPackagesTask>());
-            FindAndBuildProjectsTask BuildProjectTaskFactory() => new(workspace.Object, dotnetUtility.Object, findFilesService.Object, new NullLogger<FindAndBuildProjectsTask>());
-            OpenRepositoryTask OpenRepositoryTaskFactory() => new(git.Object, fileSystem, new NullLogger<OpenRepositoryTask>());
+            IBuildRepositoryPackagesTask BuildPackagesTaskFactory()
+            {
+                return buildPackagesTaskMock.Object;
+            }
+
+            IOpenRepositoryTask OpenRepositoryTaskFactory()
+            {
+                return openRepositoryMock.Object;
+            }
         }
     }
 }

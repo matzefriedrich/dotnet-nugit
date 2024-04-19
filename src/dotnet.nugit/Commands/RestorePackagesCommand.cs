@@ -18,15 +18,13 @@
     /// </summary>
     public class RestorePackagesCommand(
         INugitWorkspace workspace,
-        Func<OpenRepositoryTask> openRepositoryTaskFactory,
-        Func<FindAndBuildProjectsTask> buildProjectsTaskFactory,
-        Func<BuildRepositoryPackagesTask> buildPackagesTaskFactory,
+        Func<IOpenRepositoryTask> openRepositoryTaskFactory,
+        Func<IBuildRepositoryPackagesTask> buildPackagesTaskFactory,
         ILogger<RestorePackagesCommand> logger)
     {
-        private readonly Func<FindAndBuildProjectsTask> buildProjectsTaskFactory = buildProjectsTaskFactory ?? throw new ArgumentNullException(nameof(buildProjectsTaskFactory));
-        private readonly Func<BuildRepositoryPackagesTask> buildPackagesTaskFactory = buildPackagesTaskFactory ?? throw new ArgumentNullException(nameof(buildPackagesTaskFactory));
+        private readonly Func<IBuildRepositoryPackagesTask> buildPackagesTaskFactory = buildPackagesTaskFactory ?? throw new ArgumentNullException(nameof(buildPackagesTaskFactory));
         private readonly ILogger<RestorePackagesCommand> logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        private readonly Func<OpenRepositoryTask> openRepositoryTaskFactory = openRepositoryTaskFactory ?? throw new ArgumentNullException(nameof(openRepositoryTaskFactory));
+        private readonly Func<IOpenRepositoryTask> openRepositoryTaskFactory = openRepositoryTaskFactory ?? throw new ArgumentNullException(nameof(openRepositoryTaskFactory));
         private readonly INugitWorkspace workspace = workspace ?? throw new ArgumentNullException(nameof(workspace));
 
         public async Task<int> RestoreWorkspacePackagesAsync(bool forceReinstall, CancellationToken cancellationToken)
@@ -39,7 +37,7 @@
             foreach (RepositoryReference repositoryReference in repositories)
             {
                 RepositoryUri uri = repositoryReference.AsRepositoryUri();
-                OpenRepositoryTask openRepositoryTask = this.openRepositoryTaskFactory();
+                IOpenRepositoryTask openRepositoryTask = this.openRepositoryTaskFactory();
                 using IRepository? repo = openRepositoryTask.OpenRepository(feed, uri, allowClone: true);
                 if (repo == null)
                 {
@@ -47,7 +45,7 @@
                     continue;
                 }
 
-                BuildRepositoryPackagesTask buildPackagesTask = this.buildPackagesTaskFactory();
+                IBuildRepositoryPackagesTask buildPackagesTask = this.buildPackagesTaskFactory();
 
                 string? repositoryReferenceTag = repositoryReference.Tag;
                 if (string.IsNullOrWhiteSpace(repositoryReferenceTag) == false)
@@ -57,6 +55,8 @@
                 }
                 else
                 {
+                    await buildPackagesTask.BuildRepositoryPackagesAsync(repositoryReference, feed, repo, null, null, cancellationToken);
+
                     List<Reference> tagReferences = repo.Refs.Where(reference => reference.IsTag).ToList();
                     foreach (Reference reference in tagReferences)
                     {
