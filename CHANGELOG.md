@@ -5,13 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.0-alpha1.240419.1] - 2024-04-19
 
 ### Added
-- Adds the `restore` command that can restore referenced Git repositories and output packages.
+- [PR #6] Adds the `restore` command that can restore referenced Git repositories and output packages. (#5)
 
 ### Changed
-- The functionality required to clone and build projects got refactored; service types for common tasks have been added and are now utilized by the `add` and `restore` commands.
+- The functionality required to clone and build projects got refactored; service types for common tasks have been added and are now utilized by the `add` and `restore` commands. (#5)
 - The tool can now look up the workspace configuration file `.nugit` in the current working directory or parent directories. Commands that require workspace information can now be used from any directory within the repository tree.
 - Because lots of things require IO, from now on `System.IO.Abstractions` is used to make IO acess testable
 - Support of implicit usings got disabled (namespace imports indicate dependencies and we wanna see them)
