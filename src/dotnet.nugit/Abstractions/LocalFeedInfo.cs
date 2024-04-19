@@ -43,8 +43,8 @@
         public string ProjectDirectoryPathFor(RepositoryUri repositoryUri)
         {
             string repositoriesRootPath = this.RepositoriesRootPath();
-            string sanitizedRepositoryPathString = repositoryUri.RepositoryName.TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
-            return Path.Combine(repositoriesRootPath, sanitizedRepositoryPathString);
+            string sanitizedRepositoryPathString = repositoryUri.RepositoryName.TrimStart('/');
+            return Path.Combine(repositoriesRootPath, sanitizedRepositoryPathString).SanitizedPathString();
         }
 
         public override bool Equals(object? obj)

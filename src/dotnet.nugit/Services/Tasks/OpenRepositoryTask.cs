@@ -43,7 +43,7 @@
             try
             {
                 this.logger.LogInformation("Opening Git repository.");
-                return new Repository(projectFolderPath);
+                return this.git.OpenRepository(projectFolderPath);
             }
             catch (RepositoryNotFoundException e)
             {

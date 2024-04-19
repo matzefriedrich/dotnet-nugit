@@ -2,9 +2,9 @@ namespace dotnet.nugit.Services
 {
     using System;
     using System.Threading;
+    using Abstractions;
     using LibGit2Sharp;
     using Microsoft.Extensions.Logging;
-    using nugit.Abstractions;
     using Resources;
 
     internal sealed class LibGit2SharpAdapter(
@@ -45,6 +45,13 @@ namespace dotnet.nugit.Services
             }
 
             return false;
+        }
+
+        public IRepository OpenRepository(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path)) throw new ArgumentException(Resources.ArgumentException_Value_cannot_be_null_or_whitespace, nameof(path));
+
+            return new Repository(path);
         }
 
         private void RepositoryOperationCompleted(RepositoryOperationContext context)
