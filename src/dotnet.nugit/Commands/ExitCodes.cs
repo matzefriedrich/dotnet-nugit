@@ -7,5 +7,6 @@
         public const int ErrCannotCreateFeed = 102;
         public const int ErrInvalidRepositoryReference = 111;
         public const int ErrCannotOpen = 112;
+        public const int ErrNotAWorkspace = 201;
     }
 }

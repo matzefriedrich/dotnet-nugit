@@ -1,5 +1,6 @@
 ﻿namespace dotnet.nugit.Abstractions
 {
+    using System;
     using System.ComponentModel;
     using System.Diagnostics.CodeAnalysis;
     using System.Text;
@@ -154,6 +155,18 @@
             {
                 RepositoryType = "git",
                 RepositoryUrl = this.CloneUrl()
+            };
+        }
+
+        public RepositoryReference AsReference(string? tag, string? commitSha, string? repositoryPath = null)
+        {
+            return new RepositoryReference
+            {
+                RepositoryType = "git",
+                RepositoryUrl = this.CloneUrl(),
+                Tag = tag,
+                Hash = commitSha,
+                RepositoryPath = repositoryPath ?? "/"
             };
         }
 

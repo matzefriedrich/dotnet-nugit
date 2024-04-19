@@ -1,27 +1,29 @@
 ﻿namespace dotnet.nugit.UnitTest
 {
+    using System.IO.Abstractions.TestingHelpers;
     using System.Text;
     using Abstractions;
     using Microsoft.Extensions.Logging.Abstractions;
     using Moq;
     using Services;
 
-    public class LocalNuGetFeedServiceTest
+    public class LocalNuGetFeedConfigurationServiceTest
     {
         [Fact]
         public async Task LocalNuGetFeedService_GetConfiguredPackageSourcesAsync_returns_empty_sources_if_config_file_is_missing_Test()
         {
             // Arrange
             var variablesServiceMock = new Mock<IVariablesService>();
-            var infoServiceMock = new Mock<INuGetInfoService>();
+            var infoServiceMock = new Mock<INuGetConfigurationAccessService>();
             infoServiceMock
                 .Setup(service => service.GetNuGetConfigReader())
                 .Returns(StreamReader.Null);
 
-            var sut = new LocalNuGetFeedService(
+            var sut = new LocalNuGetFeedConfigurationService(
+                new MockFileSystem(),
                 variablesServiceMock.Object,
                 infoServiceMock.Object,
-                new NullLogger<LocalNuGetFeedService>());
+                new NullLogger<LocalNuGetFeedConfigurationService>());
 
             // Act
             IEnumerable<PackageSource> actual = await sut.GetConfiguredPackageSourcesAsync(CancellationToken.None);
@@ -34,7 +36,8 @@
         public async Task LocalNuGetFeedService_CreateLocalFeedIfNotExistsAsync_Test()
         {
             // Arrange
-            using var temporaryDirectory = new TempDirectory();
+            var fileSystem = new MockFileSystem();
+            using var temporaryDirectory = new TempDirectory(fileSystem);
 
             const string localFeedName = "TestFeed";
             string? nugitHomeDirectoryVariableValue = Path.Combine(temporaryDirectory.DirectoryPath, localFeedName);
@@ -51,7 +54,7 @@
                 .Returns(true)
                 .Verifiable();
 
-            var infoServiceMock = new Mock<INuGetInfoService>();
+            var infoServiceMock = new Mock<INuGetConfigurationAccessService>();
             infoServiceMock
                 .Setup(service => service.GetNuGetConfigReader())
                 .Returns(() => new StringReader(buffer.ToString()));
@@ -60,10 +63,11 @@
                 .Setup(service => service.GetNuGetConfigWriter())
                 .Returns(CreateNugetConfigurationWriter);
 
-            var sut = new LocalNuGetFeedService(
+            var sut = new LocalNuGetFeedConfigurationService(
+                new MockFileSystem(),
                 variablesServiceMock.Object,
                 infoServiceMock.Object,
-                new NullLogger<LocalNuGetFeedService>());
+                new NullLogger<LocalNuGetFeedConfigurationService>());
 
             // Act
             LocalFeedInfo? createdFeed = await sut.CreateLocalFeedIfNotExistsAsync(CancellationToken.None);

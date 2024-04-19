@@ -3,7 +3,7 @@
     <PropertyGroup>
         <AssemblyVersion>0.1.0</AssemblyVersion>
         <FileVersion>0.1.2</FileVersion>
-        <ImplicitUsings>enable</ImplicitUsings>
+        <ImplicitUsings>disable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <OutputType>Exe</OutputType>
         <TargetFramework>net8.0</TargetFramework>
@@ -22,7 +22,7 @@
         <RepositoryType>git</RepositoryType>
         <RepositoryUrl>https://github.com/matzefriedrich/dotnet-nugit</RepositoryUrl>
         <Title>dotnet nugit</Title>
-        <Version>0.1.0-alpha1.240417.1</Version>
+        <Version>0.2.0-alpha1.240419.1</Version>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -54,6 +54,7 @@
         <PackageReference Include="Serilog" Version="3.1.1"/>
         <PackageReference Include="Serilog.Extensions.Logging" Version="8.0.0"/>
         <PackageReference Include="Serilog.Sinks.Console" Version="5.0.1"/>
+        <PackageReference Include="System.IO.Abstractions" Version="21.0.2" />
         <PackageReference Include="System.Linq.Async" Version="6.0.1"/>
         <PackageReference Include="YamlDotNet" Version="15.1.2"/>
     </ItemGroup>

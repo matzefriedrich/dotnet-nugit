@@ -1,18 +1,24 @@
 ﻿namespace dotnet.nugit.Services
 {
+    using System;
+    using System.IO.Abstractions;
+
     public sealed class TempDirectory : IDisposable
     {
+        private readonly IFileSystem fileSystem;
         private readonly object syncObject = new();
         private bool disposed;
 
-        public TempDirectory()
+        public TempDirectory(IFileSystem fileSystem)
         {
+            this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
+
             string folderName = Guid.NewGuid().ToString()[..8];
-            this.DirectoryPath = Path.Combine(Path.GetTempPath(), folderName);
+            this.DirectoryPath = fileSystem.Path.Combine(fileSystem.Path.GetTempPath(), folderName);
 
             lock (this.syncObject)
             {
-                if (Directory.Exists(this.DirectoryPath) == false) Directory.CreateDirectory(this.DirectoryPath);
+                if (this.fileSystem.Directory.Exists(this.DirectoryPath) == false) fileSystem.Directory.CreateDirectory(this.DirectoryPath);
             }
         }
 
@@ -23,7 +29,7 @@
             lock (this.syncObject)
             {
                 if (this.disposed) return;
-                if (Directory.Exists(this.DirectoryPath)) Directory.Delete(this.DirectoryPath, true);
+                if (this.fileSystem.Directory.Exists(this.DirectoryPath)) this.fileSystem.Directory.Delete(this.DirectoryPath, true);
                 this.disposed = true;
             }
         }

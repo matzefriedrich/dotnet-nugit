@@ -17,7 +17,7 @@ namespace dotnet.nugit.UnitTest
                 LocalPath = Environment.CurrentDirectory
             };
 
-            var feedServiceMock = new Mock<INuGetFeedService>();
+            var feedServiceMock = new Mock<INuGetFeedConfigurationService>();
             feedServiceMock
                 .Setup(service => service.CreateLocalFeedIfNotExistsAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync((CancellationToken _) => expectedLocalFeedInfo)
@@ -50,7 +50,7 @@ namespace dotnet.nugit.UnitTest
                 LocalPath = Environment.CurrentDirectory
             };
 
-            var feedServiceMock = new Mock<INuGetFeedService>();
+            var feedServiceMock = new Mock<INuGetFeedConfigurationService>();
             feedServiceMock
                 .Setup(service => service.CreateLocalFeedIfNotExistsAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync((CancellationToken _) => expectedLocalFeedInfo)

@@ -1,5 +1,7 @@
 ﻿namespace dotnet.nugit.Abstractions
 {
+    using System;
+
     internal static class ApplicationVariableNames
     {
         public static readonly string NugitHome = "NUGIT_HOME";

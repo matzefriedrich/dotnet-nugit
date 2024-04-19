@@ -1,5 +1,8 @@
 namespace dotnet.nugit.Services
 {
+    using System;
+    using System.IO;
+    using System.Threading.Tasks;
     using Abstractions;
     using Microsoft.Extensions.Logging;
     using YamlDotNet.Core;
@@ -62,6 +65,11 @@ namespace dotnet.nugit.Services
                 configurationFile.AddRepository(repositoryUri);
                 return configurationFile;
             });
+        }
+
+        public Task UpdateRepositoryReferenceAsync(RepositoryReference repositoryReference, RepositoryReference updatedRepositoryReference)
+        {
+            throw new NotImplementedException();
         }
     }
 }

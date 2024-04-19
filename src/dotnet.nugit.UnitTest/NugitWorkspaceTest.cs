@@ -1,5 +1,7 @@
 namespace dotnet.nugit.UnitTest
 {
+    using System.IO.Abstractions;
+    using System.IO.Abstractions.TestingHelpers;
     using System.Text;
     using Abstractions;
     using Microsoft.Extensions.Logging.Abstractions;
@@ -23,7 +25,9 @@ namespace dotnet.nugit.UnitTest
                 LocalFeed = localFeedInfo
             };
 
-            using var environment = new TemporaryDirectoryWorkspaceEnvironment();
+            var mockFileSystem = new MockFileSystem();
+            using var environment = new TemporaryDirectoryWorkspaceEnvironment(mockFileSystem);
+            
             var sut = new NugitWorkspace(environment, new NullLogger<NugitWorkspace>());
 
             var createDelegateMock = new Mock<Func<NugitConfigurationFile>>();
@@ -60,7 +64,8 @@ namespace dotnet.nugit.UnitTest
                 LocalFeed = localFeedInfo
             };
 
-            using var environment = new TemporaryDirectoryWorkspaceEnvironment();
+            var fileSystemMock = new MockFileSystem();
+            using var environment = new TemporaryDirectoryWorkspaceEnvironment(fileSystemMock);
             var sut = new NugitWorkspace(environment, new NullLogger<NugitWorkspace>());
 
             var createDelegateMock = new Mock<Func<NugitConfigurationFile>>();
@@ -98,7 +103,7 @@ namespace dotnet.nugit.UnitTest
         }
 
         [Fact]
-        public async Task NugitWorkspace_AddRepository_Test()
+        public async Task NugitWorkspace_AddRepositoryReferenceAsync_Test()
         {
             // Arrange
             var buffer = new StringBuilder();

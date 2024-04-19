@@ -1,19 +1,17 @@
 namespace dotnet.nugit.Services
 {
+    using System;
+    using System.Threading;
     using Abstractions;
     using LibGit2Sharp;
     using Microsoft.Extensions.Logging;
     using Resources;
 
-    internal sealed class LibGit2SharpAdapter : ILibGit2SharpAdapter
+    internal sealed class LibGit2SharpAdapter(
+        ILogger<LibGit2SharpAdapter> logger) : ILibGit2SharpAdapter
     {
-        private readonly ILogger<LibGit2SharpAdapter> logger;
+        private readonly ILogger<LibGit2SharpAdapter> logger = logger ?? throw new ArgumentNullException(nameof(logger));
         private readonly ManualResetEventSlim resetEventSlim = new();
-
-        public LibGit2SharpAdapter(ILogger<LibGit2SharpAdapter> logger)
-        {
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        }
 
         public bool TryCloneRepository(string cloneUrl, string repositoryPath, CancellationToken cancellationToken)
         {
@@ -47,6 +45,22 @@ namespace dotnet.nugit.Services
             }
 
             return false;
+        }
+
+        public IRepository OpenRepository(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path)) throw new ArgumentException(Resources.ArgumentException_Value_cannot_be_null_or_whitespace, nameof(path));
+
+            return new Repository(path);
+        }
+
+        public void Checkout(IRepository repo, Commit commit, CheckoutOptions checkoutOptions)
+        {
+            ArgumentNullException.ThrowIfNull(repo);
+            ArgumentNullException.ThrowIfNull(commit);
+            ArgumentNullException.ThrowIfNull(checkoutOptions);
+
+            Commands.Checkout(repo, commit, checkoutOptions);
         }
 
         private void RepositoryOperationCompleted(RepositoryOperationContext context)

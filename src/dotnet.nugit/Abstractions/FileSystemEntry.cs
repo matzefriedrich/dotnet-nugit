@@ -1,6 +1,6 @@
 ﻿namespace dotnet.nugit.Abstractions
-
 {
+    using System;
     using Resources;
 
     public sealed class FileSystemEntry
