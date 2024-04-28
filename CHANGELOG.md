@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- [PR #7] The application can access package configuration properties directly from project files and override/tweak them as needed. The `add` and `restore` commands now support the `--configuration` flag, as known from other `dotnet` commands.
+- Adds support for F# project files
+
+### Changed
+
+- [PR #7] Changes services involved with building and packing NuGet packages. Instead of invoking terminal commands, the MSBuild workspace and MSBuild project API are used.
+
 ## [0.2.0-alpha1.240419.1] - 2024-04-19
 
 ### Added
