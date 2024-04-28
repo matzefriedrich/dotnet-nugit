@@ -58,6 +58,7 @@
         private IAsyncEnumerable<string> CreateDotNetProjectFileFinder(string localRepositoryPath, CancellationToken cancellationToken)
         {
             const string csproj = ".csproj";
+            const string fsproj = ".fsproj";
             const string vbproj = ".vbproj";
 
             return this.finder.FindAsync(localRepositoryPath, "*.*", async entry =>
@@ -67,6 +68,7 @@
                 return extension switch
                 {
                     csproj => true,
+                    fsproj => true,
                     vbproj => true,
                     _ => false
                 };
