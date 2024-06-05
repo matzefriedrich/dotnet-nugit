@@ -2,6 +2,7 @@ namespace dotnet.nugit.Services.Workspace
 {
     using System;
     using System.IO;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Xml;
@@ -12,10 +13,6 @@ namespace dotnet.nugit.Services.Workspace
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.MSBuild;
     using Microsoft.Extensions.Logging;
-
-    internal sealed class Fs : MSBuildFileSystemBase
-    {
-    }
 
     public class ProjectWorkspaceManager : IProjectWorkspaceManager
     {
@@ -61,9 +58,9 @@ namespace dotnet.nugit.Services.Workspace
             using var reader = XmlReader.Create(input);
             var p = new Microsoft.Build.Evaluation.Project(reader);
             const ProjectInstanceSettings settings = ProjectInstanceSettings.Immutable;
-            MSBuildFileSystemBase fs = new Fs();
-            ProjectInstance? projectInstance = p.CreateProjectInstance(settings, EvaluationContext.Create(EvaluationContext.SharingPolicy.Isolated, fs));
-
+            MSBuildFileSystemBase fs = new DefaultMsBuildFileSystem();
+            ProjectInstance? projectInstance = p.CreateProjectInstance(settings, EvaluationContext.Create(EvaluationContext.SharingPolicy.Shared, fs));
+            
             return new ProjectAccessor(project, projectInstance, configurationName);
         }
     }

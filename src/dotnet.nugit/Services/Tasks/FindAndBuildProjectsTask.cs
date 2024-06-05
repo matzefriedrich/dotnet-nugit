@@ -7,8 +7,9 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Abstractions;
     using Microsoft.Extensions.Logging;
-    using nugit.Abstractions;
+    using Workspace;
 
     public interface IFindAndBuildProjectsTask
     {
@@ -24,10 +25,10 @@
         ILogger<FindAndBuildProjectsTask> logger) : IFindAndBuildProjectsTask
     {
         private readonly IDotNetUtility dotNetUtility = dotNetUtility ?? throw new ArgumentNullException(nameof(dotNetUtility));
-        private readonly IProjectWorkspaceManager projectWorkspaceManager = projectWorkspaceManager ?? throw new ArgumentNullException(nameof(projectWorkspaceManager));
-        private readonly IFindFilesService finder = finder ?? throw new ArgumentNullException(nameof(finder));
         private readonly IFileSystem fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
+        private readonly IFindFilesService finder = finder ?? throw new ArgumentNullException(nameof(finder));
         private readonly ILogger<FindAndBuildProjectsTask> logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        private readonly IProjectWorkspaceManager projectWorkspaceManager = projectWorkspaceManager ?? throw new ArgumentNullException(nameof(projectWorkspaceManager));
         private readonly INugitWorkspace workspace = workspace ?? throw new ArgumentNullException(nameof(workspace));
 
         public async Task FindAndBuildPackagesAsync(RepositoryReference qualifiedRepositoryReference, LocalFeedInfo feed, CancellationToken cancellationToken)
@@ -41,13 +42,17 @@
             foreach (string file in projectFiles)
             {
                 TimeSpan timeout = TimeSpan.FromSeconds(30);
-                
+
                 const string configurationName = "Release";
                 IProjectAccessor project = await this.projectWorkspaceManager.LoadProjectAsync(file, configurationName, cancellationToken);
-                project.DeriveNuspec();
-                
+
                 this.logger.LogInformation("Building package for project: {ProjectFile}@{ReferenceName}", file, versionSuffix);
                 await this.dotNetUtility.BuildAsync(file, timeout, cancellationToken);
+
+                IProjectPackageMetadata packageSpec = project.DeriveNuspec();
+                packageSpec.AddDefaultValues(ProjectPackageMetadata.RepositoryUrl, qualifiedRepositoryReference.RepositoryUrl);
+                string projectNuspecFile = Path.Combine(Path.GetDirectoryName(file)!, $"{Path.GetFileNameWithoutExtension(file)}.nuspec");
+                await packageSpec.WriteNuspecFileAsync(projectNuspecFile, cancellationToken);
 
                 string packageTargetFolderPath = feed.PackagesRootPath();
                 var packOptions = new PackOptions { VersionSuffix = versionSuffix };
