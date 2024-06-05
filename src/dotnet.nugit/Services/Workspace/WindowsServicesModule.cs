@@ -1,7 +1,7 @@
 namespace dotnet.nugit.Services.Workspace
 {
     using System;
-    using dotnet.nugit.Abstractions;
+    using Abstractions;
     using Microsoft.Extensions.DependencyInjection;
 
     internal sealed class WindowsServicesModule : IModule
@@ -10,8 +10,8 @@ namespace dotnet.nugit.Services.Workspace
         {
             if (OperatingSystem.IsWindows() == false)
                 return;
-            
-            services.AddTransient<IMsBuildToolPathLocator, VisualStudioToolPathLocator>();
+
+            services.AddSingleton<IMsBuildToolPathLocator, VisualStudioToolPathLocator>();
         }
     }
 }

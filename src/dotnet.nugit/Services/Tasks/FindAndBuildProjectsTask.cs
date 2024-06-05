@@ -44,7 +44,7 @@
                 
                 const string configurationName = "Release";
                 IProjectAccessor project = await this.projectWorkspaceManager.LoadProjectAsync(file, configurationName, cancellationToken);
-                
+                project.DeriveNuspec();
                 
                 this.logger.LogInformation("Building package for project: {ProjectFile}@{ReferenceName}", file, versionSuffix);
                 await this.dotNetUtility.BuildAsync(file, timeout, cancellationToken);

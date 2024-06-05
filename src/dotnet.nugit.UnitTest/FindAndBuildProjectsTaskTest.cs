@@ -47,7 +47,12 @@ namespace dotnet.nugit.UnitTest
                 .Returns(projectFilesList.ToAsyncEnumerable)
                 .Verifiable();
 
+            var projectAccessorMock = new Mock<IProjectAccessor>();
             var projectWorkspaceManagerMock = new Mock<IProjectWorkspaceManager>();
+            projectWorkspaceManagerMock
+                .Setup(manager => manager.LoadProjectAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(projectAccessorMock.Object)
+                .Verifiable();
             
             var sut = new FindAndBuildProjectsTask(
                 workspaceMock.Object,

@@ -38,9 +38,9 @@
         
         private static void ConfigureWorkspaceServices(IServiceCollection services)
         {
-            services.AddTransient<IMsBuildToolPathLocator, VisualStudioToolPathLocator>();
-            services.AddTransient<IMsBuildToolPathLocator, NetSdkToolPathLocator>();
+            services.AddSingleton<IMsBuildToolsLocator, MsBuildToolsLocatorService>();
             services.AddTransient<IProjectWorkspaceManager, ProjectWorkspaceManager>();
+
             services.AddModule<LinuxServicesModule>();
             services.AddModule<WindowsServicesModule>();
         }

@@ -5,8 +5,6 @@ namespace dotnet.nugit.Abstractions
 
     public interface IProjectWorkspaceManager
     {
-        string? LocateMsBuildToolsPath();
-        
         Task<IProjectAccessor> LoadProjectAsync(string projectFile, string configurationName, CancellationToken cancellationToken);
     }
 }
