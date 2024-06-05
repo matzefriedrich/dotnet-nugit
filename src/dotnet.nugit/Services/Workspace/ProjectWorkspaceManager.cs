@@ -1,96 +1,113 @@
-namespace dotnet.nugit.Services.Workspace
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Xml;
+using dotnet.nugit.Abstractions;
+using Microsoft.Build.Evaluation.Context;
+using Microsoft.Build.Execution;
+using Microsoft.Build.FileSystem;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.MSBuild;
+using Microsoft.Extensions.Logging;
+
+namespace dotnet.nugit.Services.Workspace;
+
+internal sealed class Fs : MSBuildFileSystemBase
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Collections.Immutable;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using Abstractions;
-    using Microsoft.CodeAnalysis;
-    using Microsoft.CodeAnalysis.Host.Mef;
-    using Microsoft.CodeAnalysis.MSBuild;
-    using Microsoft.Extensions.Logging;
-    using NuGet.Packaging;
-    using NuGet.Packaging.Core;
-    using Resources;
+}
 
-    public class ProjectWorkspaceManager : IProjectWorkspaceManager
+public class ProjectWorkspaceManager : IProjectWorkspaceManager
+{
+    private readonly ILogger<ProjectWorkspaceManager> logger;
+    private readonly ILoggerFactory loggerFactory;
+    private readonly IEnumerable<IMsBuildToolPathLocator> msBuildLocators;
+    private readonly ProjectWorkspaceLogger msBuildLogger;
+
+    public ProjectWorkspaceManager(
+        IEnumerable<IMsBuildToolPathLocator> msBuildLocators,
+        ILoggerFactory loggerFactory,
+        ILogger<ProjectWorkspaceManager> logger)
     {
-        private readonly ILogger<ProjectWorkspaceManager> logger;
-        private readonly ILoggerFactory loggerFactory;
-        private readonly IEnumerable<IMsBuildToolPathLocator> msBuildLocators;
-        private readonly ProjectWorkspaceLogger msBuildLogger;
+        this.msBuildLocators = msBuildLocators ?? throw new ArgumentNullException(nameof(msBuildLocators));
+        this.loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
+        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-        public ProjectWorkspaceManager(
-            IEnumerable<IMsBuildToolPathLocator> msBuildLocators,
-            ILoggerFactory loggerFactory,
-            ILogger<ProjectWorkspaceManager> logger)
-        {
-            this.msBuildLocators = msBuildLocators ?? throw new ArgumentNullException(nameof(msBuildLocators));
-            this.loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
-            ILogger<ProjectWorkspaceLogger> workspaceLogger = loggerFactory.CreateLogger<ProjectWorkspaceLogger>();
-            this.msBuildLogger = new ProjectWorkspaceLogger(workspaceLogger);
-        }
-
-        public string? LocateMsBuildToolsPath()
-        {
-            foreach (IMsBuildToolPathLocator toolPathLocator in this.msBuildLocators)
-            {
-                if (toolPathLocator.TryLocateMsBuildToolsPath(out string? path)) return path;
-            }
-
-            return null;
-        }
-
-        public async Task<IProjectAccessor> LoadProjectAsync(string projectFile, string configurationName, CancellationToken cancellationToken)
-        {
-            if (string.IsNullOrWhiteSpace(projectFile)) throw new ArgumentException(Resources.ArgumentException_Value_cannot_be_null_or_whitespace, nameof(projectFile));
-
-            string? msBuildToolsPath = this.LocateMsBuildToolsPath();
-            if (string.IsNullOrWhiteSpace(msBuildToolsPath))
-                throw new InvalidOperationException("Cannot detect the .NET SDK");
-
-            // Environment.SetEnvironmentVariable("MsBuildToolsPath", msBuildToolsPath);
-
-            var workspace = MSBuildWorkspace.Create();
-            Project project = await workspace.OpenProjectAsync(projectFile, this.msBuildLogger, new Progress<ProjectLoadProgress>(), cancellationToken);
-            Compilation? compilation = await project.GetCompilationAsync(cancellationToken);
-            if (compilation == null) return ProjectAccessor.Empty;
-            
-            /* using var stream = new MemoryStream();
-            compilation.Emit(stream, cancellationToken: cancellationToken); */
-
-            /* var m = new MSBuildProjectLoader(workspace);
-            var map = ProjectMap.Create();
-            ImmutableArray<ProjectInfo> info = await m.LoadProjectInfoAsync(projectFile, map, cancellationToken: cancellationToken); */
-            
-            return new ProjectAccessor(project, configurationName);
-        }
+        var workspaceLogger = loggerFactory.CreateLogger<ProjectWorkspaceLogger>();
+        msBuildLogger = new ProjectWorkspaceLogger(workspaceLogger);
     }
 
-    public sealed class ProjectAccessor : IProjectAccessor
+    public string? LocateMsBuildToolsPath()
     {
-        public static readonly IProjectAccessor Empty = new ProjectAccessor();
-        private readonly string? configurationName;
+        foreach (var toolPathLocator in msBuildLocators)
+            if (toolPathLocator.TryLocateMsBuildToolsPath(out var path))
+                return path;
 
-        private readonly Project? project;
+        return null;
+    }
 
-        private ProjectAccessor()
-        {
-        }
+    public async Task<IProjectAccessor> LoadProjectAsync(string projectFile, string configurationName,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(projectFile))
+            throw new ArgumentException(Resources.Resources.ArgumentException_Value_cannot_be_null_or_whitespace,
+                nameof(projectFile));
 
-        public ProjectAccessor(Project project, string configurationName)
-        {
-            if (string.IsNullOrWhiteSpace(configurationName)) throw new ArgumentException(Resources.ArgumentException_Value_cannot_be_null_or_whitespace, nameof(configurationName));
-            this.project = project ?? throw new ArgumentNullException(nameof(project));
-            this.configurationName = configurationName;
-        }
+        var msBuildToolsPath = LocateMsBuildToolsPath();
+        if (string.IsNullOrWhiteSpace(msBuildToolsPath))
+            throw new InvalidOperationException("Cannot detect the .NET SDK");
 
-        public void DeriveNuspec()
-        {
-            
-        }
+        // Environment.SetEnvironmentVariable("MsBuildToolsPath", msBuildToolsPath);
+
+        var workspace = MSBuildWorkspace.Create();
+        var project = await workspace.OpenProjectAsync(projectFile, msBuildLogger, new Progress<ProjectLoadProgress>(),
+            cancellationToken);
+        var compilation = await project.GetCompilationAsync(cancellationToken);
+        if (compilation == null) return ProjectAccessor.Empty;
+
+        /* using var stream = new MemoryStream();
+        compilation.Emit(stream, cancellationToken: cancellationToken); */
+
+        /* var m = new MSBuildProjectLoader(workspace);
+        var map = ProjectMap.Create();
+        ImmutableArray<ProjectInfo> info = await m.LoadProjectInfoAsync(projectFile, map, cancellationToken: cancellationToken); */
+
+        await using Stream input = File.OpenRead(projectFile);
+        using var reader = XmlReader.Create(input);
+        var p = new Microsoft.Build.Evaluation.Project(reader);
+        const ProjectInstanceSettings settings = ProjectInstanceSettings.Immutable;
+        MSBuildFileSystemBase fs = new Fs();
+        var projectInstance = p.CreateProjectInstance(settings, EvaluationContext.Create(EvaluationContext.SharingPolicy.Isolated, fs));
+
+        return new ProjectAccessor(project, projectInstance, configurationName);
+    }
+}
+
+public sealed class ProjectAccessor : IProjectAccessor
+{
+    public static readonly IProjectAccessor Empty = new ProjectAccessor();
+    
+    private readonly ProjectInstance? _projectPropertiesEvaluationInstance;
+    private readonly Project? project;
+    private readonly string? configurationName;
+
+    private ProjectAccessor()
+    {
+    }
+
+    public ProjectAccessor(
+        Project codeAnalysisProject,
+        ProjectInstance projectPropertiesEvaluationInstance,
+        string configurationName)
+    {
+        if (string.IsNullOrWhiteSpace(configurationName)) throw new ArgumentException(Resources.Resources.ArgumentException_Value_cannot_be_null_or_whitespace, nameof(configurationName));
+        this.project = codeAnalysisProject ?? throw new ArgumentNullException(nameof(codeAnalysisProject));
+        this._projectPropertiesEvaluationInstance = projectPropertiesEvaluationInstance ?? throw new ArgumentNullException(nameof(projectPropertiesEvaluationInstance));
+        this.configurationName = configurationName;
+    }
+
+    public void DeriveNuspec()
+    {
     }
 }

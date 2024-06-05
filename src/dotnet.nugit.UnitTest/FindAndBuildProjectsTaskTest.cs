@@ -47,9 +47,12 @@ namespace dotnet.nugit.UnitTest
                 .Returns(projectFilesList.ToAsyncEnumerable)
                 .Verifiable();
 
+            var projectWorkspaceManagerMock = new Mock<IProjectWorkspaceManager>();
+            
             var sut = new FindAndBuildProjectsTask(
                 workspaceMock.Object,
                 dotNetUtilityMock.Object,
+                projectWorkspaceManagerMock.Object,
                 finderMock.Object,
                 fileSystem,
                 new NullLogger<FindAndBuildProjectsTask>());
