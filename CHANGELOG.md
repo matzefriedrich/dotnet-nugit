@@ -9,12 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- [PR #7] The application can access package configuration properties directly from project files and override/tweak them as needed. The `add` and `restore` commands now support the `--configuration` flag, as known from other `dotnet` commands.
-- Adds support for F# project files
+- [PR #8] The application can access package configuration properties directly from project files and override/tweak them as needed. The `add` and `restore` commands now support the `--configuration` flag, as known from other `dotnet` commands. (#7)
+- Adds support for F# project files (#7)
 
 ### Changed
 
-- [PR #7] Changes services involved with building and packing NuGet packages. Instead of invoking terminal commands, the MSBuild workspace and MSBuild project API are used.
+- [PR #8] Changes services involved with building and packing NuGet packages. Instead of invoking terminal commands, the MSBuild workspace and MSBuild project API are used.
+
+### Fixed
+
+- [PR #8] Fixes broken task factories
 
 ## [0.2.0-alpha1.240419.1] - 2024-04-19
 

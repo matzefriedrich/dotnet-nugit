@@ -18,11 +18,13 @@
     internal sealed class FindAndBuildProjectsTask(
         INugitWorkspace workspace,
         IDotNetUtility dotNetUtility,
+        IProjectWorkspaceManager projectWorkspaceManager,
         IFindFilesService finder,
         IFileSystem fileSystem,
         ILogger<FindAndBuildProjectsTask> logger) : IFindAndBuildProjectsTask
     {
         private readonly IDotNetUtility dotNetUtility = dotNetUtility ?? throw new ArgumentNullException(nameof(dotNetUtility));
+        private readonly IProjectWorkspaceManager projectWorkspaceManager = projectWorkspaceManager ?? throw new ArgumentNullException(nameof(projectWorkspaceManager));
         private readonly IFindFilesService finder = finder ?? throw new ArgumentNullException(nameof(finder));
         private readonly IFileSystem fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         private readonly ILogger<FindAndBuildProjectsTask> logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -39,7 +41,11 @@
             foreach (string file in projectFiles)
             {
                 TimeSpan timeout = TimeSpan.FromSeconds(30);
-
+                
+                const string configurationName = "Release";
+                IProjectAccessor project = await this.projectWorkspaceManager.LoadProjectAsync(file, configurationName, cancellationToken);
+                
+                
                 this.logger.LogInformation("Building package for project: {ProjectFile}@{ReferenceName}", file, versionSuffix);
                 await this.dotNetUtility.BuildAsync(file, timeout, cancellationToken);
 
