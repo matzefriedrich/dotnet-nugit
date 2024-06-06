@@ -18,6 +18,7 @@ namespace dotnet.nugit.Commands
     public class AddPackagesFromRepositoryCommand(
         INuGetFeedConfigurationService nuGetFeedConfigurationService,
         INugitWorkspace workspace,
+        IMsBuildToolsLocator msBuildToolsLocator,
         Func<IOpenRepositoryTask> openRepositoryTaskFactory,
         Func<IBuildRepositoryPackagesTask> buildPackagesTaskFactory,
         ILogger<AddPackagesFromRepositoryCommand> logger)
@@ -27,11 +28,14 @@ namespace dotnet.nugit.Commands
         private readonly INuGetFeedConfigurationService nuGetFeedConfigurationService = nuGetFeedConfigurationService ?? throw new ArgumentNullException(nameof(nuGetFeedConfigurationService));
         private readonly Func<IOpenRepositoryTask> openRepositoryTaskFactory = openRepositoryTaskFactory ?? throw new ArgumentNullException(nameof(openRepositoryTaskFactory));
         private readonly INugitWorkspace workspace = workspace ?? throw new ArgumentNullException(nameof(workspace));
+        private readonly IMsBuildToolsLocator msBuildToolsLocator = msBuildToolsLocator ?? throw new ArgumentNullException(nameof(msBuildToolsLocator));
 
         public async Task<int> ProcessRepositoryAsync(string repositoryReferenceString, bool headOnly, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(repositoryReferenceString)) throw new ArgumentException(Resources.ArgumentException_Value_cannot_be_null_or_whitespace, nameof(repositoryReferenceString));
 
+            this.msBuildToolsLocator.Initialize();
+            
             LocalFeedInfo? feed = await this.nuGetFeedConfigurationService.GetConfiguredLocalFeedAsync(cancellationToken);
             if (feed == null) return ErrLocalFeedNotFound;
 

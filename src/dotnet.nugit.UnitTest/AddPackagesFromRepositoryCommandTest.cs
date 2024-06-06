@@ -39,9 +39,12 @@ namespace dotnet.nugit.UnitTest
                 .Setup(task => task.BuildRepositoryPackagesAsync(It.IsAny<RepositoryReference>(), feed, repositoryMock.Object, null, null, It.IsAny<CancellationToken>()))
                 .Verifiable();
 
+            var msBuildToolsLocatorMock = new Mock<IMsBuildToolsLocator>();
+            
             var sut = new AddPackagesFromRepositoryCommand(
                 feedService.Object,
                 workspace.Object,
+                msBuildToolsLocatorMock.Object,
                 OpenRepositoryTaskFactory,
                 BuildPackagesTaskFactory,
                 new NullLogger<AddPackagesFromRepositoryCommand>());
