@@ -18,6 +18,7 @@
     /// </summary>
     public class RestorePackagesCommand(
         INugitWorkspace workspace,
+        IMsBuildToolsLocator msBuildToolsLocator,
         Func<IOpenRepositoryTask> openRepositoryTaskFactory,
         Func<IBuildRepositoryPackagesTask> buildPackagesTaskFactory,
         ILogger<RestorePackagesCommand> logger)
@@ -26,9 +27,12 @@
         private readonly ILogger<RestorePackagesCommand> logger = logger ?? throw new ArgumentNullException(nameof(logger));
         private readonly Func<IOpenRepositoryTask> openRepositoryTaskFactory = openRepositoryTaskFactory ?? throw new ArgumentNullException(nameof(openRepositoryTaskFactory));
         private readonly INugitWorkspace workspace = workspace ?? throw new ArgumentNullException(nameof(workspace));
+        private readonly IMsBuildToolsLocator msBuildToolsLocator = msBuildToolsLocator ?? throw new ArgumentNullException(nameof(msBuildToolsLocator));
 
         public async Task<int> RestoreWorkspacePackagesAsync(bool forceReinstall, CancellationToken cancellationToken)
         {
+            this.msBuildToolsLocator.Initialize();
+
             LocalFeedInfo? feed = this.workspace.GetConfiguredLocalFeed();
             if (feed == null)
                 return ErrLocalFeedNotFound;

@@ -6,6 +6,7 @@ namespace dotnet.nugit.UnitTest
     using Microsoft.Extensions.Logging.Abstractions;
     using Moq;
     using Services.Tasks;
+    using Services.Workspace;
 
     public class FindAndBuildProjectsTaskTest
     {
@@ -32,11 +33,11 @@ namespace dotnet.nugit.UnitTest
 
             var dotNetUtilityMock = new Mock<IDotNetUtility>();
             dotNetUtilityMock
-                .Setup(utility => utility.BuildAsync(projectFilePath, It.IsAny<TimeSpan?>(), It.IsAny<CancellationToken>()))
+                .Setup(utility => utility.BuildAsync(It.IsAny<IDotNetProject>(), It.IsAny<TimeSpan?>(), It.IsAny<CancellationToken>()))
                 .Verifiable();
 
             dotNetUtilityMock
-                .Setup(utility => utility.TryPackAsync(projectFilePath, It.IsAny<string>(), It.IsAny<PackOptions>(), It.IsAny<TimeSpan?>(), It.IsAny<CancellationToken>()))
+                .Setup(utility => utility.TryPackAsync(It.IsAny<IDotNetProject>(), It.IsAny<string>(), It.IsAny<PackOptions>(), It.IsAny<TimeSpan?>(), It.IsAny<CancellationToken>()))
                 .Verifiable();
 
             var projectFilesList = new List<string> { projectFilePath };
@@ -47,9 +48,19 @@ namespace dotnet.nugit.UnitTest
                 .Returns(projectFilesList.ToAsyncEnumerable)
                 .Verifiable();
 
+            var projectAccessorMock = new Mock<IDotNetProject>();
+            projectAccessorMock.Setup(accessor => accessor.DerivePackageSpec()).Returns(ProjectPackageMetadata.Empty());
+
+            var projectWorkspaceManagerMock = new Mock<IProjectWorkspaceManager>();
+            projectWorkspaceManagerMock
+                .Setup(manager => manager.LoadProjectAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(projectAccessorMock.Object)
+                .Verifiable();
+
             var sut = new FindAndBuildProjectsTask(
                 workspaceMock.Object,
                 dotNetUtilityMock.Object,
+                projectWorkspaceManagerMock.Object,
                 finderMock.Object,
                 fileSystem,
                 new NullLogger<FindAndBuildProjectsTask>());
@@ -59,8 +70,8 @@ namespace dotnet.nugit.UnitTest
 
             // Assert
             finderMock.Verify(service => service.FindAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Func<FileSystemEntry, Task<bool>>>(), It.IsAny<CancellationToken>()), Times.Once);
-            dotNetUtilityMock.Verify(utility => utility.BuildAsync(projectFilePath, It.IsAny<TimeSpan?>(), It.IsAny<CancellationToken>()), Times.Once);
-            dotNetUtilityMock.Verify(utility => utility.TryPackAsync(projectFilePath, It.IsAny<string>(), It.IsAny<PackOptions>(), It.IsAny<TimeSpan?>(), It.IsAny<CancellationToken>()), Times.Once);
+            dotNetUtilityMock.Verify(utility => utility.BuildAsync(It.IsAny<IDotNetProject>(), It.IsAny<TimeSpan?>(), It.IsAny<CancellationToken>()), Times.Once);
+            dotNetUtilityMock.Verify(utility => utility.TryPackAsync(It.IsAny<IDotNetProject>(), It.IsAny<string>(), It.IsAny<PackOptions>(), It.IsAny<TimeSpan?>(), It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }

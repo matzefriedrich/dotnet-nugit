@@ -5,7 +5,7 @@ namespace dotnet.nugit.Services
     using System.IO;
     using System.IO.Abstractions;
     using System.Text;
-    using nugit.Abstractions;
+    using Abstractions;
 
     public abstract class DirectoryWorkspaceEnvironment(
         IFileSystem fileSystem) : IWorkspaceEnvironment

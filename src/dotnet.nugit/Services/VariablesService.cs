@@ -3,7 +3,7 @@ namespace dotnet.nugit.Services
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using nugit.Abstractions;
+    using Abstractions;
     using Resources;
 
     public sealed class VariablesService : IVariablesService

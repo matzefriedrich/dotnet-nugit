@@ -24,7 +24,7 @@
             return services;
         }
 
-        private static IServiceCollection AddModule<T>(this IServiceCollection services) where T : IModule, new()
+        internal static IServiceCollection AddModule<T>(this IServiceCollection services) where T : IModule, new()
         {
             ArgumentNullException.ThrowIfNull(services);
 

@@ -2,7 +2,7 @@ namespace dotnet.nugit.Services
 {
     using System;
     using System.IO.Abstractions;
-    using nugit.Abstractions;
+    using Abstractions;
 
     internal sealed class NugitHomeVariableAccessor(IFileSystem fileSystem) : VariableAccessor(ApplicationVariableNames.NugitHome)
     {

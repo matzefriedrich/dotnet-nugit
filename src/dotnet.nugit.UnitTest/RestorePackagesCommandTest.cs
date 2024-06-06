@@ -43,8 +43,11 @@
                 .Setup(task => task.BuildRepositoryPackagesAsync(repositoryReference, feed, repositoryMock.Object, null, null, It.IsAny<CancellationToken>()))
                 .Verifiable();
 
+            var msBuildToolsLocatorMock = new Mock<IMsBuildToolsLocator>();
+
             var sut = new RestorePackagesCommand(
                 workspaceMock.Object,
+                msBuildToolsLocatorMock.Object,
                 OpenRepositoryTaskFactory,
                 BuildPackagesTaskFactory,
                 new NullLogger<RestorePackagesCommand>());

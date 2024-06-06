@@ -5,7 +5,7 @@
     using System.IO.Abstractions;
     using System.Runtime.InteropServices;
     using System.Text;
-    using nugit.Abstractions;
+    using Abstractions;
 
     public class NuGetConfigurationAccessService(IFileSystem fileSystem) : INuGetConfigurationAccessService
     {

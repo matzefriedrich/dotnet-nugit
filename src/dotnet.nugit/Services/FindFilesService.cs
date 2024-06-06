@@ -7,7 +7,7 @@
     using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
-    using nugit.Abstractions;
+    using Abstractions;
     using Resources;
 
     public sealed class FindFilesService(IFileSystem fileSystem) : IFindFilesService
