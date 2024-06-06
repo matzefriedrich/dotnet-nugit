@@ -5,9 +5,9 @@ namespace dotnet.nugit.Abstractions
         string? GetProjectFilePath();
 
         string? GetNuspecBasePath();
-        
+
         string? GetNuspecFilePath();
-        
+
         IProjectPackageMetadata DerivePackageSpec();
     }
 }

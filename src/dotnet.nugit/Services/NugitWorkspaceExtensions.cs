@@ -3,7 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using nugit.Abstractions;
+    using Abstractions;
 
     internal static class NugitWorkspaceExtensions
     {

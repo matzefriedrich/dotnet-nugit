@@ -44,7 +44,7 @@
                 .Verifiable();
 
             var msBuildToolsLocatorMock = new Mock<IMsBuildToolsLocator>();
-            
+
             var sut = new RestorePackagesCommand(
                 workspaceMock.Object,
                 msBuildToolsLocatorMock.Object,

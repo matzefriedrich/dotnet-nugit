@@ -53,7 +53,7 @@
                 this.logger.LogError(errors.ToString());
                 return false;
             }
-            
+
             string? nuspecFilePath = project.GetNuspecFilePath();
             if (string.IsNullOrWhiteSpace(nuspecFilePath))
                 return false;

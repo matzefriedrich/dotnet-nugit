@@ -32,7 +32,7 @@
         public async Task<int> RestoreWorkspacePackagesAsync(bool forceReinstall, CancellationToken cancellationToken)
         {
             this.msBuildToolsLocator.Initialize();
-            
+
             LocalFeedInfo? feed = this.workspace.GetConfiguredLocalFeed();
             if (feed == null)
                 return ErrLocalFeedNotFound;

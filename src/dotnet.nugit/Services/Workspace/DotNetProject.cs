@@ -7,18 +7,18 @@
     using Abstractions;
     using Microsoft.Build.Execution;
     using Microsoft.CodeAnalysis;
-    
+
     public sealed class DotNetProject : IDotNetProject
     {
         public static readonly DotNetProject Empty = new();
-        
+
         private readonly IFileSystem? fileSystem;
         private readonly Project? project;
         private readonly ProjectInstance? projectInstance;
-        
+
         public DotNetProject(
             IFileSystem fileSystem,
-            Project project, 
+            Project project,
             ProjectInstance? projectInstance)
         {
             ArgumentNullException.ThrowIfNull(fileSystem);
@@ -32,7 +32,6 @@
 
         private DotNetProject()
         {
-            
         }
 
         public IProjectPackageMetadata DerivePackageSpec()
@@ -75,7 +74,7 @@
 
             if (string.IsNullOrWhiteSpace(nuspecBasePath) || string.IsNullOrWhiteSpace(nuspecFileName))
                 return null;
-                
+
             return this.fileSystem?.Path.Combine(nuspecBasePath, nuspecFileName);
         }
     }

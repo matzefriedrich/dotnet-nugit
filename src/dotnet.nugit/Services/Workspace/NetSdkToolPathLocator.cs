@@ -33,7 +33,7 @@ namespace dotnet.nugit.Services.Workspace
                 IDirectoryInfo directoryInfo = this.fileSystem.DirectoryInfo.New(directory);
                 string? name = directoryInfo.Name;
 
-                if (!Version.TryParse(name, out Version? sdkVersion)) 
+                if (!Version.TryParse(name, out Version? sdkVersion))
                     continue;
 
                 yield return new SdkVersion(sdkVersion, directory);

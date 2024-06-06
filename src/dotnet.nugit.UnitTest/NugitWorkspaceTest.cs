@@ -27,7 +27,7 @@ namespace dotnet.nugit.UnitTest
 
             var mockFileSystem = new MockFileSystem();
             using var environment = new TemporaryDirectoryWorkspaceEnvironment(mockFileSystem);
-            
+
             var sut = new NugitWorkspace(environment, new NullLogger<NugitWorkspace>());
 
             var createDelegateMock = new Mock<Func<NugitConfigurationFile>>();

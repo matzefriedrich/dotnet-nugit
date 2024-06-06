@@ -124,7 +124,7 @@
 
             if (string.IsNullOrWhiteSpace(package.ProjectUrl) == false)
                 metadataElement.Add(new XElement("projectUrl", package.ProjectUrl));
-            
+
             var nuspec = new XDocument(
                 new XElement("package",
                     metadataElement
@@ -149,7 +149,7 @@
 
             public string? Title { get; init; }
             public string? Owners { get; init; }
-            
+
             public string? ProjectUrl { get; init; }
 
             [Required] public string? Description { get; init; }

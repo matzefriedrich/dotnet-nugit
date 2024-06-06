@@ -35,7 +35,7 @@
             services.AddTransient<IBuildRepositoryPackagesTask, BuildRepositoryPackagesTask>();
             services.AddTransient<Func<IBuildRepositoryPackagesTask>>(provider => provider.GetRequiredService<IBuildRepositoryPackagesTask>);
         }
-        
+
         private static void ConfigureWorkspaceServices(IServiceCollection services)
         {
             services.AddSingleton<IMsBuildToolsLocator, MsBuildToolsLocatorService>();

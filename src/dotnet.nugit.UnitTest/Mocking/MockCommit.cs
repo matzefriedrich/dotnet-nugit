@@ -8,7 +8,7 @@
         {
             this.Sha = sha;
         }
-        
+
         public override string Sha { get; }
     }
 }

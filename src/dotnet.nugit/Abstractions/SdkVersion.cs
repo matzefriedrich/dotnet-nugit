@@ -13,6 +13,6 @@ namespace dotnet.nugit.Abstractions
         }
 
         public Version Version { get; }
-        public string Path { get;  }
+        public string Path { get; }
     }
 }

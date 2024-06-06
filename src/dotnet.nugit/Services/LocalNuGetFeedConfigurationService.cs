@@ -9,7 +9,7 @@
     using System.Threading.Tasks;
     using System.Xml.Linq;
     using Microsoft.Extensions.Logging;
-    using nugit.Abstractions;
+    using Abstractions;
 
     public sealed class LocalNuGetFeedConfigurationService(
         IFileSystem fileSystem,

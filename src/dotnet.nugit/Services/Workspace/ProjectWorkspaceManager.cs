@@ -61,14 +61,14 @@ namespace dotnet.nugit.Services.Workspace
             // TODO: derive nuspec file location
             string projectNuspecFile = Path.Combine(Path.GetDirectoryName(projectFile)!, $"{Path.GetFileNameWithoutExtension(projectFile)}.nuspec");
 
-            
+
             await using Stream input = File.OpenRead(projectFile);
             using var reader = XmlReader.Create(input);
             var p = new Microsoft.Build.Evaluation.Project(reader);
             const ProjectInstanceSettings settings = ProjectInstanceSettings.Immutable;
             MSBuildFileSystemBase fs = new DefaultMsBuildFileSystem();
             ProjectInstance? projectInstance = p.CreateProjectInstance(settings, EvaluationContext.Create(EvaluationContext.SharingPolicy.Shared, fs));
-            
+
             return new DotNetProject(this.fileSystem, project, projectInstance);
         }
     }

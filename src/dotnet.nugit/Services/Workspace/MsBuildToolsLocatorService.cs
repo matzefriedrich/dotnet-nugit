@@ -16,9 +16,9 @@
 
             foreach (IMsBuildToolPathLocator toolPathLocator in this.msBuildLocators)
             {
-                if (!toolPathLocator.TryLocateMsBuildToolsPath(out string? path)) 
+                if (!toolPathLocator.TryLocateMsBuildToolsPath(out string? path))
                     continue;
-                
+
                 this.path = path;
                 this.initialized = true;
             }

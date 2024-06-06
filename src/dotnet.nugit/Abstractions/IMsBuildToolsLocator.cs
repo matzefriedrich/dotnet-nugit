@@ -3,7 +3,7 @@
     public interface IMsBuildToolsLocator
     {
         void Initialize();
-        
+
         string? LocateMsBuildToolsPath();
     }
 }

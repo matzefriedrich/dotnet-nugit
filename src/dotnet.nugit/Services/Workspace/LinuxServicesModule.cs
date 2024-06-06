@@ -10,7 +10,7 @@ namespace dotnet.nugit.Services.Workspace
         {
             if (OperatingSystem.IsLinux() == false)
                 return;
-            
+
             services.AddTransient<IMsBuildToolPathLocator, NetSdkToolPathLocator>();
         }
     }

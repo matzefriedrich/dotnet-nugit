@@ -2,14 +2,12 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.IO.Abstractions;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Abstractions;
     using Microsoft.Extensions.Logging;
-    using Workspace;
 
     public interface IFindAndBuildProjectsTask
     {
@@ -48,7 +46,7 @@
 
                 this.logger.LogInformation("Building package for project: {ProjectFile}@{ReferenceName}", file, versionSuffix);
                 await this.dotNetUtility.BuildAsync(project, timeout, cancellationToken);
-                
+
                 string packageTargetFolderPath = feed.PackagesRootPath();
                 var packOptions = new PackOptions { VersionSuffix = versionSuffix };
                 bool success = await this.dotNetUtility.TryPackAsync(project, packageTargetFolderPath, packOptions, timeout, cancellationToken);
@@ -60,7 +58,7 @@
                 }
             }
         }
-        
+
         private IAsyncEnumerable<string> CreateDotNetProjectFileFinder(string localRepositoryPath, CancellationToken cancellationToken)
         {
             const string csproj = ".csproj";
