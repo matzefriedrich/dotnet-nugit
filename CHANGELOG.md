@@ -5,7 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.3.1-alpha1.240607.1]
+
+### Added
+
+- [PR 10] Adds error handling for MSBuild-related runtime errors (#9)
+- [PR 10] Extends the build and SDK services location functionality to properly detect MSBuild dependencies under Linux (#9)
+
+### Fixed
+
+- [PR 10] Fixes MSBuild location under Linux (#9)
+
+
+## [0.3.0-alpha1.240606.1]
 
 ### Added
 
@@ -21,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - [PR #8] Fixes broken task factories
+
 
 ## [0.2.0-alpha1.240419.1] - 2024-04-19
 

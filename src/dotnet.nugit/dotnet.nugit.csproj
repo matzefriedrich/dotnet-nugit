@@ -2,8 +2,8 @@
 
     <PropertyGroup>
         <AssemblyName>dotnet-nugit</AssemblyName>
-        <AssemblyVersion>0.3.0</AssemblyVersion>
-        <FileVersion>0.3.0</FileVersion>
+        <AssemblyVersion>0.3.1</AssemblyVersion>
+        <FileVersion>0.3.1</FileVersion>
         <ImplicitUsings>disable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <OutputType>Exe</OutputType>
@@ -22,7 +22,7 @@
         <RepositoryType>git</RepositoryType>
         <RepositoryUrl>https://github.com/matzefriedrich/dotnet-nugit</RepositoryUrl>
         <Title>dotnet nugit</Title>
-        <Version>0.3.0-alpha1.240606.1</Version>
+        <Version>0.3.1-alpha1.240607.1</Version>
     </PropertyGroup>
 
     <PropertyGroup>
