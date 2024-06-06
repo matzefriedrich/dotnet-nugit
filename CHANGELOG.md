@@ -14,7 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- [PR #8] Changes services involved with building and packing NuGet packages. Instead of invoking terminal commands, the MSBuild workspace and MSBuild project API are used.
+- [PR #8] Changes services involved with building and packing NuGet packages.
+- [PR #8] The `dotnet pack` command is now invoked with the `-p:NuspecFile` option; Nuspec files are dynamically generated from project files (#7)
+
 
 ### Fixed
 
