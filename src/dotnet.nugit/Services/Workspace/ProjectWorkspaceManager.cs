@@ -3,7 +3,6 @@ namespace dotnet.nugit.Services.Workspace
     using System;
     using System.IO;
     using System.IO.Abstractions;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Xml;
@@ -14,13 +13,14 @@ namespace dotnet.nugit.Services.Workspace
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.MSBuild;
     using Microsoft.Extensions.Logging;
+    using Resources;
 
     public class ProjectWorkspaceManager : IProjectWorkspaceManager
     {
+        private readonly IFileSystem fileSystem;
         private readonly ILogger<ProjectWorkspaceManager> logger;
         private readonly ProjectWorkspaceLogger msBuildLogger;
         private readonly IMsBuildToolsLocator msBuildToolsLocator;
-        private readonly IFileSystem fileSystem;
 
         public ProjectWorkspaceManager(
             IMsBuildToolsLocator msBuildToolsLocator,
@@ -38,7 +38,7 @@ namespace dotnet.nugit.Services.Workspace
 
         public async Task<IDotNetProject> LoadProjectAsync(string projectFile, string configurationName, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(projectFile)) throw new ArgumentException(Resources.Resources.ArgumentException_Value_cannot_be_null_or_whitespace, nameof(projectFile));
+            if (string.IsNullOrWhiteSpace(projectFile)) throw new ArgumentException(Resources.ArgumentException_Value_cannot_be_null_or_whitespace, nameof(projectFile));
 
             string? msBuildToolsPath = this.msBuildToolsLocator.LocateMsBuildToolsPath();
             if (string.IsNullOrWhiteSpace(msBuildToolsPath))
@@ -51,25 +51,24 @@ namespace dotnet.nugit.Services.Workspace
             Compilation? compilation = await project.GetCompilationAsync(cancellationToken);
             if (compilation == null) return DotNetProject.Empty;
 
-            /* using var stream = new MemoryStream();
-            compilation.Emit(stream, cancellationToken: cancellationToken); */
-
-            /* var m = new MSBuildProjectLoader(workspace);
-            var map = ProjectMap.Create();
-            ImmutableArray<ProjectInfo> info = await m.LoadProjectInfoAsync(projectFile, map, cancellationToken: cancellationToken); */
-
-            // TODO: derive nuspec file location
-            string projectNuspecFile = Path.Combine(Path.GetDirectoryName(projectFile)!, $"{Path.GetFileNameWithoutExtension(projectFile)}.nuspec");
-
-
-            await using Stream input = File.OpenRead(projectFile);
-            using var reader = XmlReader.Create(input);
-            var p = new Microsoft.Build.Evaluation.Project(reader);
-            const ProjectInstanceSettings settings = ProjectInstanceSettings.Immutable;
-            MSBuildFileSystemBase fs = new DefaultMsBuildFileSystem();
-            ProjectInstance? projectInstance = p.CreateProjectInstance(settings, EvaluationContext.Create(EvaluationContext.SharingPolicy.Shared, fs));
+            ProjectInstance projectInstance = await CreateProjectInstance(projectFile);
 
             return new DotNetProject(this.fileSystem, project, projectInstance);
+        }
+
+        private static async Task<ProjectInstance> CreateProjectInstance(string projectFile)
+        {
+            await using Stream input = File.OpenRead(projectFile);
+            using var reader = XmlReader.Create(input);
+
+            var project = new Microsoft.Build.Evaluation.Project(reader);
+
+            const ProjectInstanceSettings settings = ProjectInstanceSettings.Immutable;
+            MSBuildFileSystemBase fs = new DefaultMsBuildFileSystem();
+            var evaluationContext = EvaluationContext.Create(EvaluationContext.SharingPolicy.Shared, fs);
+            ProjectInstance? projectInstance = project.CreateProjectInstance(settings, evaluationContext);
+
+            return projectInstance;
         }
     }
 }
