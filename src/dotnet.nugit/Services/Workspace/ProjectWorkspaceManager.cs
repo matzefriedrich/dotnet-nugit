@@ -8,6 +8,7 @@ namespace dotnet.nugit.Services.Workspace
     using System.Xml;
     using Abstractions;
     using Microsoft.Build.Evaluation.Context;
+    using Microsoft.Build.Exceptions;
     using Microsoft.Build.Execution;
     using Microsoft.Build.FileSystem;
     using Microsoft.CodeAnalysis;
@@ -36,9 +37,11 @@ namespace dotnet.nugit.Services.Workspace
             this.msBuildLogger = new ProjectWorkspaceLogger(workspaceLogger);
         }
 
-        public async Task<IDotNetProject> LoadProjectAsync(string projectFile, string configurationName, CancellationToken cancellationToken)
+        public async Task<IDotNetProject> LoadProjectAsync(string projectFile, string configurationName,
+            CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(projectFile)) throw new ArgumentException(Resources.ArgumentException_Value_cannot_be_null_or_whitespace, nameof(projectFile));
+            if (string.IsNullOrWhiteSpace(projectFile))
+                throw new ArgumentException(Resources.ArgumentException_Value_cannot_be_null_or_whitespace, nameof(projectFile));
 
             string? msBuildToolsPath = this.msBuildToolsLocator.LocateMsBuildToolsPath();
             if (string.IsNullOrWhiteSpace(msBuildToolsPath))
@@ -48,27 +51,33 @@ namespace dotnet.nugit.Services.Workspace
 
             var workspace = MSBuildWorkspace.Create();
             Project project = await workspace.OpenProjectAsync(projectFile, this.msBuildLogger, new Progress<ProjectLoadProgress>(), cancellationToken);
-            Compilation? compilation = await project.GetCompilationAsync(cancellationToken);
-            if (compilation == null) return DotNetProject.Empty;
 
-            ProjectInstance projectInstance = await CreateProjectInstance(projectFile);
+            ProjectInstance? projectInstance = await this.CreateProjectInstance(projectFile);
 
             return new DotNetProject(this.fileSystem, project, projectInstance);
         }
 
-        private static async Task<ProjectInstance> CreateProjectInstance(string projectFile)
+        private async Task<ProjectInstance?> CreateProjectInstance(string projectFile)
         {
             await using Stream input = File.OpenRead(projectFile);
             using var reader = XmlReader.Create(input);
 
-            var project = new Microsoft.Build.Evaluation.Project(reader);
+            try
+            {
+                var project = new Microsoft.Build.Evaluation.Project(reader);
 
-            const ProjectInstanceSettings settings = ProjectInstanceSettings.Immutable;
-            MSBuildFileSystemBase fs = new DefaultMsBuildFileSystem();
-            var evaluationContext = EvaluationContext.Create(EvaluationContext.SharingPolicy.Shared, fs);
-            ProjectInstance? projectInstance = project.CreateProjectInstance(settings, evaluationContext);
+                const ProjectInstanceSettings settings = ProjectInstanceSettings.Immutable;
+                MSBuildFileSystemBase fs = new DefaultMsBuildFileSystem();
+                var evaluationContext = EvaluationContext.Create(EvaluationContext.SharingPolicy.Shared, fs);
+                ProjectInstance? projectInstance = project.CreateProjectInstance(settings, evaluationContext);
 
-            return projectInstance;
+                return projectInstance;
+            }
+            catch (InvalidProjectFileException e)
+            {
+                this.logger.LogError(e, "Cannot load project file for evaluation.");
+                return null;
+            }
         }
     }
 }

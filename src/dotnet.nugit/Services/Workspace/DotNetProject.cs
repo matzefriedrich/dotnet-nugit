@@ -23,7 +23,6 @@
         {
             ArgumentNullException.ThrowIfNull(fileSystem);
             ArgumentNullException.ThrowIfNull(project);
-            ArgumentNullException.ThrowIfNull(projectInstance);
 
             this.fileSystem = fileSystem;
             this.project = project;

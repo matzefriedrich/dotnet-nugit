@@ -25,7 +25,7 @@ namespace dotnet.nugit.Services.Workspace
         }
 
         public LoggerVerbosity Verbosity { get; set; }
-        public string Parameters { get; set; } = null!;
+        public string? Parameters { get; set; }
 
         private void HandleAnyEvent(object sender, BuildEventArgs? e)
         {
