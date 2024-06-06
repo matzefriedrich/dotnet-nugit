@@ -44,28 +44,23 @@
                 TimeSpan timeout = TimeSpan.FromSeconds(30);
 
                 const string configurationName = "Release";
-                IProjectAccessor project = await this.projectWorkspaceManager.LoadProjectAsync(file, configurationName, cancellationToken);
+                IDotNetProject project = await this.projectWorkspaceManager.LoadProjectAsync(file, configurationName, cancellationToken);
 
                 this.logger.LogInformation("Building package for project: {ProjectFile}@{ReferenceName}", file, versionSuffix);
-                await this.dotNetUtility.BuildAsync(file, timeout, cancellationToken);
-
-                IProjectPackageMetadata packageSpec = project.DeriveNuspec();
-                packageSpec.AddDefaultValues(ProjectPackageMetadata.RepositoryUrl, qualifiedRepositoryReference.RepositoryUrl);
-                string projectNuspecFile = Path.Combine(Path.GetDirectoryName(file)!, $"{Path.GetFileNameWithoutExtension(file)}.nuspec");
-                await packageSpec.WriteNuspecFileAsync(projectNuspecFile, cancellationToken);
-
+                await this.dotNetUtility.BuildAsync(project, timeout, cancellationToken);
+                
                 string packageTargetFolderPath = feed.PackagesRootPath();
                 var packOptions = new PackOptions { VersionSuffix = versionSuffix };
-                bool success = await this.dotNetUtility.TryPackAsync(file, packageTargetFolderPath, packOptions, timeout, cancellationToken);
+                bool success = await this.dotNetUtility.TryPackAsync(project, packageTargetFolderPath, packOptions, timeout, cancellationToken);
                 if (success == false) this.logger.LogWarning("Failed to create NuGet package for project: {ProjectFile}@{ReferenceName}", file, versionSuffix);
                 if (this.workspace.TryReadConfiguration(out NugitConfigurationFile? config) && config is { CopyLocal: true })
                 {
                     packageTargetFolderPath = this.fileSystem.Path.Combine(this.fileSystem.Directory.GetCurrentDirectory(), "nupkg");
-                    await this.dotNetUtility.TryPackAsync(file, packageTargetFolderPath, packOptions, timeout, cancellationToken);
+                    await this.dotNetUtility.TryPackAsync(project, packageTargetFolderPath, packOptions, timeout, cancellationToken);
                 }
             }
         }
-
+        
         private IAsyncEnumerable<string> CreateDotNetProjectFileFinder(string localRepositoryPath, CancellationToken cancellationToken)
         {
             const string csproj = ".csproj";

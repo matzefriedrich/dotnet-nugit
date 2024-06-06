@@ -2,13 +2,16 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations;
     using System.Diagnostics.CodeAnalysis;
     using System.IO;
+    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Xml;
     using System.Xml.Linq;
     using Abstractions;
+    using Resources;
 
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
     public sealed class ProjectPackageMetadata(Dictionary<string, string?> map) : IProjectPackageMetadata
@@ -30,7 +33,7 @@
 
         public IProjectPackageMetadata AddDefaultValues(string projectPropertyName, params string?[] values)
         {
-            if (string.IsNullOrWhiteSpace(projectPropertyName)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(projectPropertyName));
+            if (string.IsNullOrWhiteSpace(projectPropertyName)) throw new ArgumentException(Resources.ArgumentException_Value_cannot_be_null_or_whitespace, nameof(projectPropertyName));
             foreach (string? next in values)
             {
                 if (string.IsNullOrWhiteSpace(next) == false)
@@ -40,51 +43,119 @@
             return this;
         }
 
+        public async Task WriteNuspecFileAsync(Stream target, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(target);
+            XDocument doc = this.CreateNuspecDocument();
+
+            var settings = new XmlWriterSettings { Async = true, Encoding = Encoding.UTF8, Indent = true };
+            await using var writer = XmlWriter.Create(target, settings);
+            await doc.WriteToAsync(writer, cancellationToken);
+            await writer.FlushAsync();
+        }
+
+        public bool Validate(out ICollection<ValidationResult> validationResults)
+        {
+            validationResults = new List<ValidationResult>();
+
+            NuspecFile file = this.CreateNuspecFileObject();
+
+            var validationContext = new ValidationContext(file, null, null);
+            return Validator.TryValidateObject(file, validationContext, validationResults, true);
+        }
+
         internal static IEnumerable<ProjectPropertyName> GetPropertyNames()
         {
             ProjectPropertyName[] propertyNames = [AssemblyVersion, AssemblyTitle, Authors, Company, Copyright, Description, Owners, PackageDescription, PackageId, PackageVersion, RepositoryUrl, Tags];
             return propertyNames;
         }
 
+        private NuspecFile CreateNuspecFileObject()
+        {
+            string? authorsOrCompany = map.GetValueOrDefault(Authors, UseFallbackValues("", Authors, Company));
+            string? packageId = map.GetValueOrDefault(PackageId, UseFallbackValues("", PackageId, AssemblyTitle));
+            string? packageVersion = map.GetValueOrDefault(PackageVersion, map.GetValueOrDefault(AssemblyVersion, UseFallbackValues("1.0.0", AssemblyVersion)));
+            string? packageTitle = map.GetValueOrDefault(AssemblyTitle, UseFallbackValues("", AssemblyTitle));
+            string? packageOwners = map.GetValueOrDefault(Owners, UseFallbackValues("", Owners));
+            string? packageProjectUrl = map.GetValueOrDefault(RepositoryUrl, UseFallbackValues("", RepositoryUrl));
+            string? packageDescription = map.GetValueOrDefault(PackageDescription, map.GetValueOrDefault(Description));
+            string? copyrightString = map.GetValueOrDefault(Copyright, UseFallbackValues($"Copyright {DateTime.Today.Year}", Copyright));
+            string? tags = map.GetValueOrDefault(Tags, UseFallbackValues("", Tags));
+
+            return new NuspecFile
+            {
+                Authors = authorsOrCompany,
+                Id = packageId,
+                Version = packageVersion,
+                Title = packageTitle,
+                Owners = packageOwners,
+                ProjectUrl = packageProjectUrl,
+                Description = packageDescription,
+                Copyright = copyrightString,
+                Tags = tags
+            };
+
+            string UseFallbackValues(string defaultValue, params ProjectPropertyName[] names)
+            {
+                foreach (ProjectPropertyName propertyName in names)
+                {
+                    if (this.fallbackValues.TryGetValue(propertyName, out string? value) && string.IsNullOrWhiteSpace(value) == false)
+                        return value;
+                }
+
+                return defaultValue;
+            }
+        }
+
         public XDocument CreateNuspecDocument()
         {
-            string? authorsOrCompany = map.GetValueOrDefault(Authors, this.fallbackValues.GetValueOrDefault(Authors, map.GetValueOrDefault(Company, this.fallbackValues.GetValueOrDefault(Company, ""))));
+            NuspecFile package = this.CreateNuspecFileObject();
 
+            var metadataElement = new XElement("metadata",
+                new XElement("id", package.Id),
+                new XElement("version", package.Version),
+                new XElement("authors", package.Authors),
+                new XElement("description", package.Description),
+                new XElement("title", package.Title),
+                new XElement("owners", package.Owners),
+                new XElement("requireLicenseAcceptance", "false"),
+                new XElement("copyright", package.Copyright),
+                new XElement("tags", package.Tags));
+
+            if (string.IsNullOrWhiteSpace(package.ProjectUrl) == false)
+                metadataElement.Add(new XElement("projectUrl", package.ProjectUrl));
+            
             var nuspec = new XDocument(
                 new XElement("package",
-                    new XElement("metadata",
-                        new XElement("id", map.GetValueOrDefault(PackageId, this.fallbackValues.GetValueOrDefault(PackageId, ""))),
-                        new XElement("version", map.GetValueOrDefault(PackageVersion, map.GetValueOrDefault(AssemblyVersion, this.fallbackValues.GetValueOrDefault(AssemblyVersion, "1.0.0"))))),
-                    new XElement("title", map.GetValueOrDefault(AssemblyTitle, this.fallbackValues.GetValueOrDefault(AssemblyTitle, ""))),
-                    new XElement("authors", authorsOrCompany),
-                    new XElement("owners", map.GetValueOrDefault(Owners, this.fallbackValues.GetValueOrDefault(Owners, ""))),
-                    new XElement("projectUrl", map.GetValueOrDefault(RepositoryUrl, this.fallbackValues.GetValueOrDefault(RepositoryUrl, ""))),
-                    new XElement("requireLicenseAcceptance", "false"),
-                    new XElement("description", map.GetValueOrDefault(PackageDescription, map.GetValueOrDefault(Description))),
-                    new XElement("copyright", map.GetValueOrDefault(Copyright, this.fallbackValues.GetValueOrDefault(Copyright, $"Copyright {DateTime.Today.Year}"))),
-                    new XElement("tags", map.GetValueOrDefault(Tags, this.fallbackValues.GetValueOrDefault(Tags, "")))
+                    metadataElement
                 )
             );
 
             return nuspec;
         }
 
-        public async Task WriteNuspecFileAsync(string path, CancellationToken cancellationToken)
-        {
-            if (string.IsNullOrWhiteSpace(path)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(path));
-            XDocument doc = this.CreateNuspecDocument();
-            
-            Stream stream = File.Open(path, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
-            stream.SetLength(0);
-
-            await using var writer = XmlWriter.Create(stream);
-            await doc.WriteToAsync(writer, cancellationToken);
-            await writer.FlushAsync();
-        }
-
         public static IProjectPackageMetadata Empty()
         {
             return new ProjectPackageMetadata(new Dictionary<string, string?>());
+        }
+
+        internal sealed class NuspecFile
+        {
+            [Required] public string? Authors { get; init; }
+
+            [Required] public string? Id { get; init; }
+
+            [Required] public string? Version { get; init; }
+
+            public string? Title { get; init; }
+            public string? Owners { get; init; }
+            
+            public string? ProjectUrl { get; init; }
+
+            [Required] public string? Description { get; init; }
+
+            public string? Copyright { get; init; }
+            public string? Tags { get; init; }
         }
     }
 }
