@@ -2,18 +2,18 @@
 
     <PropertyGroup>
         <AssemblyName>dotnet-nugit</AssemblyName>
-        <AssemblyVersion>0.3.1</AssemblyVersion>
-        <FileVersion>0.3.1</FileVersion>
+        <AssemblyVersion>0.4.0</AssemblyVersion>
+        <FileVersion>0.4.0</FileVersion>
         <ImplicitUsings>disable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <OutputType>Exe</OutputType>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
     </PropertyGroup>
 
     <PropertyGroup>
         <Authors>Matthias Friedrich</Authors>
         <Company>Matthias Friedrich</Company>
-        <Copyright>Copyright (c) 2024 - Matthias Friedrich</Copyright>
+        <Copyright>Copyright (c) 2024 - 2026 by Matthias Friedrich</Copyright>
         <Description>A dotnet command-line interface (CLI) that can build NuGet packages on the fly from sources available on GitHub and add them as package references to projects.</Description>
         <PackageId>dotnet-nugit</PackageId>
         <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -22,7 +22,7 @@
         <RepositoryType>git</RepositoryType>
         <RepositoryUrl>https://github.com/matzefriedrich/dotnet-nugit</RepositoryUrl>
         <Title>dotnet nugit</Title>
-        <Version>0.3.1-alpha1.240607.1</Version>
+        <Version>0.4.0-alpha1.260206.1</Version>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -45,21 +45,22 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="LibGit2Sharp" Version="0.30.0"/>
-        <PackageReference Include="Microsoft.Build" Version="17.10.4" ExcludeAssets="runtime" />
-        <PackageReference Include="Microsoft.Build.Framework" Version="17.10.4" ExcludeAssets="runtime" />
-        <PackageReference Include="Microsoft.Build.Locator" Version="1.7.8" ExcludeAssets="runtime" />
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.9.2"/>
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.9.2"/>
-        <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="4.9.2"/>
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0"/>
-        <PackageReference Include="NuGet.Packaging" Version="6.10.0" />
-        <PackageReference Include="Serilog" Version="4.0.0" />
-        <PackageReference Include="Serilog.Extensions.Logging" Version="8.0.0"/>
-        <PackageReference Include="Serilog.Sinks.Console" Version="5.0.1"/>
-        <PackageReference Include="System.IO.Abstractions" Version="21.0.2"/>
-        <PackageReference Include="System.Linq.Async" Version="6.0.1"/>
-        <PackageReference Include="YamlDotNet" Version="15.1.6" />
+        <PackageReference Include="LibGit2Sharp" Version="0.31.0"/>
+        <PackageReference Include="Microsoft.Build" Version="18.0.2" ExcludeAssets="runtime"/>
+        <PackageReference Include="Microsoft.Build.Framework" Version="18.0.2" ExcludeAssets="runtime" PrivateAssets="all"/>
+        <PackageReference Include="Microsoft.Build.Locator" Version="1.11.2" ExcludeAssets="runtime"/>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0"/>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="5.0.0"/>
+        <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="5.0.0"/>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.2"/>
+        <PackageReference Include="NuGet.Frameworks" Version="7.0.1" PrivateAssets="all" ExcludeAssets="runtime"/>
+        <PackageReference Include="NuGet.Packaging" Version="7.0.1"/>
+        <PackageReference Include="Serilog" Version="4.3.0"/>
+        <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0"/>
+        <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1"/>
+        <PackageReference Include="System.IO.Abstractions" Version="22.1.0"/>
+        <PackageReference Include="System.Linq.Async" Version="7.0.0"/>
+        <PackageReference Include="YamlDotNet" Version="16.3.0"/>
     </ItemGroup>
 
     <ItemGroup>
