@@ -13,7 +13,7 @@
     <PropertyGroup>
         <Authors>Matthias Friedrich</Authors>
         <Company>Matthias Friedrich</Company>
-        <Copyright>Copyright (c) 2024 - Matthias Friedrich</Copyright>
+        <Copyright>Copyright (c) 2024 - 2026 by Matthias Friedrich</Copyright>
         <Description>A dotnet command-line interface (CLI) that can build NuGet packages on the fly from sources available on GitHub and add them as package references to projects.</Description>
         <PackageId>dotnet-nugit</PackageId>
         <PackageReadmeFile>README.md</PackageReadmeFile>
