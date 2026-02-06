@@ -1,4 +1,4 @@
-![.NET 8](https://github.com/matzefriedrich/dotnet-nugit/actions/workflows/dotnet.yml/badge.svg)
+![.NET 10](https://github.com/matzefriedrich/dotnet-nugit/actions/workflows/dotnet.yml/badge.svg)
 
 
 # dotnet-nugit
@@ -11,7 +11,7 @@
 
 The project requires the following tools and frameworks to be installed:
 
-* .NET Framework 8.0 SDK
+* .NET Framework 10.0 SDK
 * An editor of choice; Visual Studio Code + C# Dev Kit is fine
 
 
@@ -37,7 +37,7 @@ $ dotnet pack src/dotnet.nugit/dotnet.nugit.csproj --configuration Release -o ./
 Install the tool from the package by using the `dotnet tool install` command; keep an eye on the `--version` option, which is required for the installation of a pre-release version of a tool package:
 
 ````bash
-$ dotnet tool install dotnet-nugit --version "0.1.0-alpha1.240417.1" --global --add-source ./build/
+$ dotnet tool install dotnet-nugit --version "0.4.0-alpha1.260206.1" --global --add-source ./build/
 ````
 
 **Ensure that the tool package is installed correctly** in the user's global tools directory; this can be checked by running `dotnet tool list --global`.  Once installed, the tool can be invoked by the `dotnet nugit` command; see the next section for a list of supported commands.
@@ -88,4 +88,4 @@ If the `--head-only` option is set to `false`, it does not only build the head c
 Once packages have been pushed to the local feed, they can be referenced via the `dotnet add package` command.
 
 ---
-Copyright (c) 2024 by Matthias Friedrich, published under [AGPL-3.0 license](LICENSE)
+Copyright (c) 2024 - 2026 by Matthias Friedrich, published under [AGPL-3.0 license](LICENSE)
